@@ -1,0 +1,368 @@
+/* ============================================================
+   Palette + tokens
+   ============================================================ */
+:root {
+  --ink:        #12211B;
+  --ink-soft:   #4A5A52;
+  --paper:      #F2F5EE;
+  --card:       #FFFFFF;
+  --eucalypt:   #2E6B4F;
+  --deep:       #173D2C;
+  --wash:       #E3EBDF;
+  --line:       #CBD8C9;
+  --amber:      #C98A16;
+  --amber-wash: #FBF2DE;
+
+  --rail-w: 3px;
+  --radius: 10px;
+  --measure: 42rem;
+
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  line-height: 1.15;
+  margin: 0 0 .5rem;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+
+p { margin: 0 0 1rem; }
+
+a { color: var(--eucalypt); }
+
+:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Chrome
+   ============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .85rem 1.25rem;
+  background: var(--deep);
+  color: var(--paper);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--paper);
+  text-decoration: none;
+  letter-spacing: .02em;
+}
+
+.topnav {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+  font-size: .95rem;
+}
+
+.topnav a {
+  color: #C8DCCB;
+  text-decoration: none;
+}
+
+.topnav a:hover { color: #FFF; text-decoration: underline; }
+
+main {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.foot {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+  color: var(--ink-soft);
+  font-size: .85rem;
+}
+
+/* ============================================================
+   Shared pieces
+   ============================================================ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 .35rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.btn {
+  font: inherit;
+  font-size: .95rem;
+  padding: .55rem 1.05rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--eucalypt);
+  background: var(--card);
+  color: var(--eucalypt);
+  cursor: pointer;
+}
+
+.btn:hover { background: var(--wash); }
+
+.btn.solid {
+  background: var(--eucalypt);
+  color: #FFF;
+}
+
+.btn.solid:hover { background: var(--deep); border-color: var(--deep); }
+
+.btn.quiet {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.btnrow {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-top: .75rem;
+}
+
+.chip {
+  display: inline-block;
+  font-size: .78rem;
+  font-family: var(--font-mono);
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  background: var(--wash);
+  color: var(--deep);
+  margin: 0 .3rem .3rem 0;
+  text-decoration: none;
+}
+
+a.chip:hover { background: var(--eucalypt); color: #FFF; }
+
+.muted { color: var(--ink-soft); }
+
+.stub-note {
+  font-size: .85rem;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--line);
+  padding-left: .75rem;
+}
+
+/* ============================================================
+   One idea box — top of every topic
+   ============================================================ */
+.oneidea {
+  background: var(--wash);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  margin: 0 0 1.5rem;
+}
+
+.oneidea p {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--deep);
+}
+
+/* ============================================================
+   Signature: the ladder rail
+   ============================================================ */
+.ladder {
+  list-style: none;
+  margin: 0 0 1.75rem;
+  padding: 0 0 0 1.5rem;
+  border-left: var(--rail-w) solid var(--line);
+}
+
+.ladder li {
+  position: relative;
+  padding: .2rem 0;
+  font-size: .92rem;
+  color: var(--ink-soft);
+}
+
+.ladder li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - var(--rail-w));
+  top: .75rem;
+  width: .7rem;
+  height: .7rem;
+  border-radius: 50%;
+  background: var(--paper);
+  border: var(--rail-w) solid var(--line);
+}
+
+.ladder li.done::before { background: var(--eucalypt); border-color: var(--eucalypt); }
+.ladder li.here::before { background: var(--amber); border-color: var(--amber); }
+
+.ladder li.here {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ladder a { color: inherit; }
+
+/* ============================================================
+   Practice items
+   ============================================================ */
+.item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 1rem 1.15rem;
+  margin: 0 0 .9rem;
+}
+
+.item .q {
+  font-size: 1.1rem;
+  margin: 0 0 .5rem;
+}
+
+.item .num {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.answer {
+  margin-top: .8rem;
+  padding: .8rem 1rem;
+  background: var(--wash);
+  border-radius: 8px;
+}
+
+.answer .label {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--deep);
+  display: block;
+  margin-bottom: .2rem;
+}
+
+.hintbox {
+  margin-top: .8rem;
+  padding: .8rem 1rem;
+  background: var(--amber-wash);
+  border-radius: 8px;
+  font-size: .95rem;
+}
+
+.scratch {
+  font: inherit;
+  font-family: var(--font-mono);
+  width: 100%;
+  min-height: 3.5rem;
+  padding: .6rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #FCFDFB;
+  resize: vertical;
+}
+
+.hidden { display: none; }
+
+/* ============================================================
+   Lists (learner queue, map)
+   ============================================================ */
+.tlist { list-style: none; margin: 0; padding: 0; }
+
+.tlist li {
+  border-bottom: 1px solid var(--line);
+  padding: .7rem 0;
+  display: flex;
+  gap: .75rem;
+  align-items: baseline;
+}
+
+.tlist li:last-child { border-bottom: 0; }
+
+.tlist a { text-decoration: none; font-weight: 700; }
+
+.tlist a:hover { text-decoration: underline; }
+
+.tlist .meta {
+  margin-left: auto;
+  font-size: .8rem;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.slugrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin: 1rem 0 0;
+}
+
+.slugrow a {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  border: 1.5px solid var(--eucalypt);
+  border-radius: 999px;
+  padding: .5rem 1.1rem;
+  color: var(--eucalypt);
+}
+
+.slugrow a:hover { background: var(--eucalypt); color: #FFF; }
+
+.subjblock { margin: 0 0 2rem; }
+
+.depth-1 { padding-left: 1.25rem; }
+.depth-2 { padding-left: 2.5rem; }
+.depth-3 { padding-left: 3.75rem; }
+
+/* ============================================================
+   Print: topic becomes a plain worksheet, answers stripped
+   ============================================================ */
+@media print {
+  .topbar, .foot, .btnrow, .btn, .noprint, .answer, .hintbox, .ladder { display: none !important; }
+  body { background: #FFF; font-size: 12pt; }
+  main { max-width: none; padding: 0; }
+  .item, .card { border: 1px solid #999; break-inside: avoid; }
+  .oneidea { background: #FFF; border: 1px solid #999; }
+  .scratch { min-height: 5rem; background: #FFF; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
