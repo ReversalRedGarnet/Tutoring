@@ -13,6 +13,7 @@
   var view = document.getElementById('view');
   var nav = document.getElementById('topnav');
   var current = { slug: null };
+  var gateFailed = false;
 
   var LAST_KEY = 'study:last-slug';
 
@@ -29,7 +30,7 @@
     var bits = [];
     if (current.slug) bits.push('<a href="#/k/' + current.slug + '">My list</a>');
     bits.push('<a href="#/map">Map</a>');
-    if (current.slug) bits.push('<a href="#/">Switch</a>');
+    if (current.slug) bits.push('<a href="#/">Finish</a>');
     nav.innerHTML = bits.join('');
   }
 
@@ -39,22 +40,35 @@
     var html;
 
     if (parts[0] === 'k' && parts[1]) {
-      rememberSlug(parts[1]);
-      html = Views.learner(parts[1]);
-      document.title = parts[1] + ' — Study';
+      var slug = parts[1];
+      var L = (window.LEARNERS || {})[slug];
+      if (!L) {
+        html = Views.notFound();
+      } else if (!Auth.isUnlocked(slug)) {
+        html = Views.gate(slug, gateFailed);
+        gateFailed = false;
+        document.title = (L.display || slug) + ' — Study';
+      } else {
+        rememberSlug(slug);
+        html = Views.learner(slug);
+        document.title = (L.display || slug) + ' — Study';
+      }
 
     } else if (parts[0] === 't' && parts[1]) {
       if (!current.slug) current.slug = recallSlug();
+      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
       html = Views.topic(parts[1], current.slug);
       var t = Topics.get(parts[1]);
       document.title = (t ? t.title : 'Topic') + ' — Study';
 
     } else if (parts[0] === 'map') {
       if (!current.slug) current.slug = recallSlug();
+      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
       html = Views.map(current.slug);
       document.title = 'Topic map — Study';
 
     } else {
+      Auth.lock();
       rememberSlug(null);
       html = Views.pick();
       document.title = 'Study';
@@ -63,7 +77,9 @@
     view.innerHTML = html;
     renderNav();
     window.scrollTo(0, 0);
-    view.focus();
+
+    var pass = view.querySelector('.passfield');
+    if (pass) pass.focus(); else view.focus();
   }
 
   /* ---------------------------------------------------------- */
@@ -122,15 +138,42 @@
       return;
     }
 
+    if (act === 'unlock') {
+      doUnlock(btn.getAttribute('data-slug'));
+      return;
+    }
+
     if (act === 'print') {
       window.print();
       return;
     }
   });
 
+  function doUnlock(slug) {
+    var field = view.querySelector('.passfield');
+    if (!field) return;
+    if (Auth.tryUnlock(slug, field.value)) {
+      gateFailed = false;
+      route();
+    } else {
+      gateFailed = true;
+      route();
+    }
+  }
+
+  /* Enter submits the password box. */
+  view.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') return;
+    var field = ev.target.closest('.passfield');
+    if (!field) return;
+    ev.preventDefault();
+    doUnlock(field.getAttribute('data-slug'));
+  });
+
   window.addEventListener('hashchange', route);
 
   current.slug = recallSlug();
+  if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
   Topics.reindex();
   route();
 

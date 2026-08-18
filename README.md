@@ -26,7 +26,7 @@ index.html              shell — nothing but the frame
 css/style.css           all styling
 js/data/topics.*.js     the library, one file per subject
 js/data/learners.js     slug -> ordered list of topic ids
-js/store.js             localStorage progress + graph helpers
+js/store.js             progress, password check, graph helpers
 js/views.js             renderers, one function per screen
 js/app.js               hash router, one delegated click handler
 ```
@@ -50,7 +50,32 @@ There is no server, so there is nothing to leak and nothing to breach.
 It also means progress does not follow them between devices — an
 acceptable trade for not holding children's performance data anywhere.
 
-Keep the slug-to-name mapping in a private file that is never committed.
+Keep the nickname-to-real-name mapping in a private file that is never
+committed.
+
+### Passwords
+
+Each learner has a `pass` in `learners.js`, stored as a salted FNV-1a hash.
+
+**This is a name tag, not a lock.** The site is static — no server — so the
+check runs in the browser and the browser can be read. The hash stops one
+kid reading another kid's word out of the repo or over a shoulder. It stops
+nothing else. That is adequate only because nothing sensitive is stored
+here, and it stops being adequate the moment that changes.
+
+These words must not be ones the kids use anywhere else.
+
+Unlocking uses `sessionStorage`, so it clears when the browser closes and
+when anyone hits "Finish". On a shared laptop a permanent unlock would make
+the password pointless by the second session.
+
+To change one, open the browser console on the site and run:
+
+```js
+Auth.hash('newword')
+```
+
+then paste the result in as `pass`. A learner with no `pass` set is open.
 
 ---
 
@@ -64,11 +89,18 @@ Every topic carries a `tier`:
 - **`taught`** — a stub plus `worked` and `guided`. Write these the week
   you actually teach the topic, not before.
 
-The library is meant to be **complete in breadth from day one and shallow
-almost everywhere.** The map is the product; the prose is optional. A stub
-is not a failure state — with a tutor present, `one_idea` plus good
-practice items is a sufficient frame for a session. A topic that never
-comes up never costs more than five minutes.
+The library is **not a syllabus and is not trying to become one.** Topics
+enter it because a parent or teacher flagged something specific that is
+confusing a specific kid — a cluster like "fractions, kinds of fractions,
+fractions to decimals" — not because a curriculum document lists them.
+Coverage is never the goal and there is no finish line to fall short of.
+
+What that means in practice: the library grows as sparse clusters, and the
+prerequisite chain matters *more* than it would in a full curriculum,
+because the job is usually finding the earlier thing that broke. When a
+cluster arrives, add the confusing topics **and** the one or two topics
+underneath them, even if nobody asked for those — that is where the
+diagnosis usually lands.
 
 `m6-frac-equiv` and `m7-frac-add-unlike` are written out as `taught` so
 there is a worked example to copy the shape from. Everything else is a stub.
@@ -156,4 +188,5 @@ ladder are all stripped, and the working-out box expands. Learners whose
 - A private, local-only tutor view over the stored confidence marks.
 - Offline caching. Not needed while this is a laptop-in-session tool;
   worth adding if it ever moves to phones on mobile data.
-- The other ~130 stubs.
+- Grouping a learner's queue into named clusters rather than one flat list.
+- Real per-cluster content, added as parents and teachers flag things.

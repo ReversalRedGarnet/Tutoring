@@ -33,19 +33,40 @@ var Views = (function () {
   function pick() {
     var slugs = Object.keys(window.LEARNERS || {});
     var links = slugs.map(function (s) {
-      return '<a href="#/k/' + esc(s) + '">' + esc(s) + '</a>';
+      var L = window.LEARNERS[s];
+      return '<a href="#/k/' + esc(s) + '">' + esc(L.display || s) + '</a>';
     }).join('');
 
     return '' +
-      '<p class="eyebrow">Start here</p>' +
       '<h1>Who is working today?</h1>' +
-      '<p class="muted">Pick your name-word. It remembers where you got to on this computer.</p>' +
       '<div class="slugrow">' + links + '</div>' +
-      '<div class="card" style="margin-top:2rem">' +
-        '<h3>Topic map</h3>' +
-        '<p class="muted" style="margin:0">Every topic and what it builds on. ' +
-        '<a href="#/map">Open the map</a></p>' +
+      '<p style="margin-top:2.5rem"><a href="#/map">Topic map</a></p>';
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Password gate                                               */
+  /* ---------------------------------------------------------- */
+  function gate(slug, failed) {
+    var L = (window.LEARNERS || {})[slug];
+    if (!L) return notFound();
+
+    return '' +
+      '<h1>Hello ' + esc(L.display || slug) + '</h1>' +
+      '<div class="card" style="max-width:22rem">' +
+        '<label for="pass" style="display:block;margin-bottom:.5rem">Your word</label>' +
+        '<input id="pass" class="passfield" type="password" autocomplete="off" ' +
+          'autocapitalize="off" spellcheck="false" data-slug="' + esc(slug) + '">' +
+        (failed ? '<p class="gate-again">That is not the word. Try again.</p>' : '') +
+        '<div class="btnrow">' +
+          '<button class="btn solid" data-act="unlock" data-slug="' + esc(slug) + '">Go</button>' +
+          '<a class="btn quiet" href="#/">Not me</a>' +
+        '</div>' +
       '</div>';
+  }
+
+  function notFound() {
+    return '<h1>No such name</h1>' +
+           '<p><a href="#/">Go back and pick one</a>.</p>';
   }
 
   /* ---------------------------------------------------------- */
@@ -53,10 +74,7 @@ var Views = (function () {
   /* ---------------------------------------------------------- */
   function learner(slug) {
     var L = (window.LEARNERS || {})[slug];
-    if (!L) {
-      return '<h1>No such name-word</h1>' +
-             '<p>Check the spelling, or <a href="#/">go back and pick one</a>.</p>';
-    }
+    if (!L) return notFound();
 
     var queue = (L.queue || []).map(Topics.get).filter(Boolean);
     var next = null;
@@ -64,7 +82,8 @@ var Views = (function () {
       if (!Store.isDone(slug, queue[i].id)) { next = queue[i]; break; }
     }
 
-    var html = '<p class="eyebrow">' + esc(slug) + ' &middot; ' + esc((L.levels || []).join(', ')) + '</p>';
+    var html = '<p class="eyebrow">' + esc(L.display || slug) + ' &middot; ' +
+               esc((L.levels || []).join(', ')) + '</p>';
 
     /* --- warm-up --- */
     var warm = Topics.warmup(slug, next ? next.id : null, 3);
@@ -254,7 +273,7 @@ var Views = (function () {
         html += '<button class="btn quiet" data-act="print">Print as a worksheet</button>';
       }
     } else {
-      html += '<a class="btn" href="#/">Pick a name-word to save your place</a>';
+      html += '<a class="btn" href="#/">Sign in to save your place</a>';
     }
     html += '</div>';
 
@@ -299,5 +318,6 @@ var Views = (function () {
     return html;
   }
 
-  return { pick: pick, learner: learner, topic: topic, map: map, subjectName: subjectName };
+  return { pick: pick, gate: gate, learner: learner, topic: topic, map: map,
+           notFound: notFound, subjectName: subjectName };
 })();

@@ -347,6 +347,25 @@ a.chip:hover { background: var(--eucalypt); color: #FFF; }
 
 .subjblock { margin: 0 0 2rem; }
 
+.passfield {
+  font: inherit;
+  font-family: var(--font-mono);
+  width: 100%;
+  padding: .6rem .7rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #FCFDFB;
+  letter-spacing: .15em;
+}
+
+.passfield:focus { border-color: var(--eucalypt); }
+
+.gate-again {
+  margin: .6rem 0 0;
+  font-size: .9rem;
+  color: var(--amber);
+}
+
 .depth-1 { padding-left: 1.25rem; }
 .depth-2 { padding-left: 2.5rem; }
 .depth-3 { padding-left: 3.75rem; }

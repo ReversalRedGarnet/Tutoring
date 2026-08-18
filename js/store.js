@@ -83,6 +83,68 @@ var Store = (function () {
 
 
 /* ------------------------------------------------------------------
+   Auth — a name tag, not a lock.
+
+   This is a static site. There is no server to check anything, so the
+   check happens in the browser and the browser can be read. This stops
+   one kid opening another kid's list. It stops nothing else, and it is
+   only adequate because nothing sensitive is stored here.
+
+   Unlocking uses sessionStorage on purpose: it clears when the browser
+   closes. On a shared laptop a permanent unlock would make the password
+   pointless by the second session.
+   ------------------------------------------------------------------ */
+
+var Auth = (function () {
+
+  var KEY = 'study:unlocked';
+
+  /* FNV-1a, salted. Not cryptography — obfuscation, and it is labelled
+     as such everywhere it appears. */
+  function hash(s) {
+    var h = 0x811c9dc5;
+    s = 'study:' + String(s == null ? '' : s).trim().toLowerCase();
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return ('0000000' + h.toString(16)).slice(-8);
+  }
+
+  function unlocked() {
+    try { return sessionStorage.getItem(KEY); } catch (e) { return null; }
+  }
+
+  return {
+    hash: hash,
+
+    /* A learner with no `pass` set is simply open. */
+    needsPass: function (slug) {
+      var L = (window.LEARNERS || {})[slug];
+      return !!(L && L.pass);
+    },
+
+    isUnlocked: function (slug) {
+      if (!Auth.needsPass(slug)) return true;
+      return unlocked() === slug;
+    },
+
+    tryUnlock: function (slug, attempt) {
+      var L = (window.LEARNERS || {})[slug];
+      if (!L) return false;
+      if (hash(attempt) !== L.pass) return false;
+      try { sessionStorage.setItem(KEY, slug); } catch (e) {}
+      return true;
+    },
+
+    lock: function () {
+      try { sessionStorage.removeItem(KEY); } catch (e) {}
+    }
+  };
+})();
+
+
+/* ------------------------------------------------------------------
    Graph helpers over window.TOPICS
    ------------------------------------------------------------------ */
 
