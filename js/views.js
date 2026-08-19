@@ -51,7 +51,7 @@ var Views = (function () {
         '</div>' +
         (failed ? '<p class="gate-again">That is not quite right. Try again.</p>' : '') +
         '<div class="btnrow">' +
-          '<button class="btn solid" data-act="login">Let us begin</button>' +
+          '<button class="btn btn-primary" type="button" data-act="login">Let us begin</button>' +
         '</div>' +
       '</div>';
   }
@@ -116,7 +116,7 @@ var Views = (function () {
     }).join('');
 
     var foot = clipped
-      ? '<button class="linkbtn" data-act="showmore">Show more</button>'
+      ? '<button class="btn btn-quiet" type="button" data-act="showmore">Show more</button>'
       : '';
 
     return panel('Topics', '<div class="ugrid">' + cards + '</div>', foot);
@@ -189,7 +189,7 @@ var Views = (function () {
                  'placeholder="Anything you want to go over again, or something new"' +
                  '>' + esc(draft) + '</textarea>' +
                '<div class="btnrow">' +
-                 '<button class="btn solid" data-act="suggest">Send to my tutor</button>' +
+                 '<button class="btn btn-primary" type="button" data-act="suggest">Send to my tutor</button>' +
                '</div>' +
                '<p class="suggest-note muted" data-role="suggest-note"></p>';
 
@@ -203,8 +203,9 @@ var Views = (function () {
 
     var units = Units.forLearner(L);
 
-    var html = '<p class="eyebrow">' + esc((L.levels || []).join(', ')) + '</p>' +
-               '<h1>Hello ' + esc(Auth.nameOf(slug)) + '</h1>';
+    var html = '<p class="eyebrow">' + esc(Auth.nameOf(slug)) + ' &middot; ' +
+               esc((L.levels || []).join(', ')) + '</p>' +
+               '<h1>Your topics</h1>';
 
     if (!units.length) {
       html += '<p class="muted">Nothing is on your list yet. That is not a mistake — ' +
@@ -248,7 +249,7 @@ var Views = (function () {
     if (!p.finished) {
       var nextT = Topics.get(p.nextId);
       html += '<div class="btnrow" style="margin-bottom:1.75rem">' +
-                '<a class="btn solid" href="#/t/' + esc(p.nextId) + '">' +
+                '<a class="btn btn-primary" href="#/t/' + esc(p.nextId) + '">' +
                   (p.started ? 'Carry on' : 'Start') + ': ' + esc(nextT.title) +
                 '</a>' +
               '</div>';
@@ -295,13 +296,13 @@ var Views = (function () {
     /* Stage 1 — commit before seeing anything */
     h += '<div class="btnrow stage-conf' + (committed ? ' hidden' : '') + '">' +
            '<button class="btn" data-act="conf" data-val="sure">I am sure</button>' +
-           '<button class="btn quiet" data-act="conf" data-val="unsure">Not sure</button>' +
+           '<button class="btn btn-quiet" type="button" data-act="conf" data-val="unsure">Not sure</button>' +
          '</div>';
 
     /* Stage 2 — reveal */
     h += '<div class="btnrow stage-reveal' + (committed ? '' : ' hidden') + '">' +
-           '<button class="btn solid" data-act="reveal">Show the answer</button>' +
-           (o.hint ? '<button class="btn quiet" data-act="hint">Give me a hint</button>' : '') +
+           '<button class="btn btn-primary" type="button" data-act="reveal">Show the answer</button>' +
+           (o.hint ? '<button class="btn btn-quiet" type="button" data-act="hint">Give me a hint</button>' : '') +
          '</div>';
 
     if (o.hint) {
@@ -313,7 +314,7 @@ var Views = (function () {
            '<span class="label">Answer</span>' + esc(o.a) +
            '<div class="btnrow">' +
              '<button class="btn" data-act="got" data-val="yes">That is what I had</button>' +
-             '<button class="btn quiet" data-act="got" data-val="no">Not yet</button>' +
+             '<button class="btn btn-quiet" type="button" data-act="got" data-val="no">Not yet</button>' +
            '</div>' +
            '<p class="muted hidden" data-role="notyet" style="margin:.6rem 0 0;font-size:.9rem">' +
              'Fine. Work it through once more with the answer in front of you, then tell your tutor which step turned.' +
@@ -343,12 +344,7 @@ var Views = (function () {
         h += '</ul>';
       }
 
-      if (sec.example) {
-        h += '<div class="example">' +
-               '<span class="example-label">' + esc(sec.example.label || 'Example') + '</span>' +
-               '<pre>' + esc((sec.example.lines || []).join('\n')) + '</pre>' +
-             '</div>';
-      }
+      if (sec.example) h += example(sec.example);
 
       if (sec.rule) {
         h += '<div class="rule">' +
@@ -362,6 +358,48 @@ var Views = (function () {
       h += '</section>';
     });
     return h;
+  }
+
+  /* Worked examples are authored as space-aligned text. Verdana is
+     proportional, so alignment has to come from the layout instead:
+     split on runs of two or more spaces, then lay the cells out in a
+     table where the browser does the aligning. */
+  function example(ex) {
+    var lines = ex.lines || [];
+    var rows = lines.map(function (line) {
+      if (!line.trim()) return null;                   /* blank spacer */
+      return line.split(/\s{2,}/).map(function (cell, i) {
+        return i === 0 ? cell : cell.trim();
+      });
+    });
+
+    var cols = 1;
+    rows.forEach(function (r) { if (r && r.length > cols) cols = r.length; });
+
+    var body = rows.map(function (r) {
+      if (!r) return '<tr class="ex-gap"><td colspan="' + cols + '"></td></tr>';
+
+      /* A line with no column break spans the full width, so prose and
+         headings inside an example do not get squeezed into column one. */
+      if (r.length === 1) {
+        return '<tr><td colspan="' + cols + '">' + esc(r[0]) + '</td></tr>';
+      }
+
+      var cells = r.map(function (c, i) {
+        var last = i === r.length - 1;
+        var span = last && r.length < cols
+          ? ' colspan="' + (cols - r.length + 1) + '"'
+          : '';
+        return '<td' + span + (c === '' ? ' class="ex-pad"' : '') + '>' + esc(c) + '</td>';
+      }).join('');
+
+      return '<tr>' + cells + '</tr>';
+    }).join('');
+
+    return '<div class="example">' +
+             '<span class="example-label">' + esc(ex.label || 'Example') + '</span>' +
+             '<table class="ex-table"><tbody>' + body + '</tbody></table>' +
+           '</div>';
   }
 
   /* Previous / next within the unit the topic belongs to. */
@@ -484,18 +522,18 @@ var Views = (function () {
     html += '<div class="btnrow noprint" style="margin-top:2rem">';
     if (slug) {
       html += done
-        ? '<button class="btn quiet" data-act="undone" data-topic="' + esc(id) + '">Put this back on the list</button>'
-        : '<button class="btn solid" data-act="done" data-topic="' + esc(id) + '">Finished this one</button>';
+        ? '<button class="btn btn-quiet" type="button" data-act="undone" data-topic="' + esc(id) + '">Put this back on the list</button>'
+        : '<button class="btn btn-primary" type="button" data-act="done" data-topic="' + esc(id) + '">Finished this one</button>';
       html += parent
-        ? '<a class="btn" href="#/u/' + esc(parent.id) + '">Back to ' + esc(parent.title) + '</a>'
-        : '<a class="btn" href="#/k/' + esc(slug) + '">Back to the list</a>';
+        ? '<a class="btn btn-quiet" href="#/u/' + esc(parent.id) + '">Back to ' + esc(parent.title) + '</a>'
+        : '<a class="btn btn-quiet" href="#/k/' + esc(slug) + '">Back to the list</a>';
 
       var L = Auth.record();
       if (L && L.homework === 'print') {
-        html += '<button class="btn quiet" data-act="print">Print as a worksheet</button>';
+        html += '<button class="btn btn-quiet" type="button" data-act="print">Print as a worksheet</button>';
       }
     } else {
-      html += '<a class="btn" href="#/">Sign in to save your place</a>';
+      html += '<a class="btn btn-quiet" href="#/">Sign in to save your place</a>';
     }
     html += '</div>';
 

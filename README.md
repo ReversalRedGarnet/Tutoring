@@ -325,6 +325,71 @@ SVG data URIs in the CSS variables `--trace-light` and `--trace-dark`. They
 sit in `::before` pseudo-elements at 10% and 6% opacity so the decoration
 can never reduce text contrast. Footer columns are placeholders.
 
+**One typeface.** Verdana throughout — headings, body, labels, examples.
+It is a system font, so the site now loads **no external assets at all**;
+the Google Fonts requests are gone.
+
+That created one real problem. Worked examples were authored as
+space-aligned columns, which only line up in a monospaced font. They are
+now rendered as a table: `example.lines` is split on runs of two or more
+spaces, and the browser aligns the columns. Alignment no longer depends on
+the typeface, so the content did not have to be rewritten. Lines with no
+column break span the full width.
+
+**One spacing scale** (`--s1` to `--s7`) and **one font scale** (`--fs-xs`
+to `--fs-2xl`). No padding or margin anywhere is a loose number. Verdana
+runs wide and tall for its point size, so the scale sits a step smaller
+than it would for a narrower face.
+
+**Two themes**, toggled from the header and remembered per browser. Dark
+is the default. Light is a soft white — `#F6F8F6`, not stark `#FFFFFF`.
+The header and footer now move with the theme, including the circuit
+traces, which have a separate darker version for light mode.
+
+Every text pair in both themes clears WCAG AA; the tightest is 5.19:1.
+
+A script in `<head>` applies the saved theme before first paint, so there
+is no flash of the wrong background.
+
+**Restraint.** No gradients, no glow, no shadows, no blur, no rounded
+corners anywhere, and one animation in the whole stylesheet — a 0.12s
+colour transition on interactive elements, disabled under
+`prefers-reduced-motion`. The blinking cursor in the wordmark is gone; it
+was decoration with no function. The teal is deliberately muted rather
+than neon.
+
+**Components are consistent.** One button treatment with three variants
+(primary, outline, quiet) sharing hover, active and disabled states; one
+input treatment across text fields, the select, the scratch pad and the
+suggestion box; one card surface for cards, panels and examples. "Show
+more" was a button dressed as a link — it is a button now.
+
+**Two widths**, because laptops are the main screen. `--measure` (52rem)
+for lesson prose; `--measure-wide` (66rem) for the dashboard, unit list
+and map, where the content is grids and rows rather than running text.
+
+**Narrow screens are laid out, not stacked.** The heading scale steps
+down, nav spreads across its own row, unit cards go single-column, and in
+the lesson list the number and status move to their own line so the title
+gets full width instead of a squeezed middle column.
+
+**Previous / next** at the foot of every topic, with position in the
+sequence. The order comes from the learner's own queue, so each child gets
+their path and not a generic one.
+
+**One idea per screen**, large type, Atkinson Hyperlegible for the body
+text — a face designed for legibility rather than for looks.
+
+**Palette** is a soft blue: `--deep` for the header, `--blue` for anything
+clickable, `--wash` for panels, `--amber` reserved for hints and the login
+retry. Nothing in the interface is red. Change the tokens at the top of
+`style.css` and the whole site follows.
+
+**Header and footer** carry a faint circuit-trace pattern, drawn as inline
+SVG data URIs in the CSS variables `--trace-light` and `--trace-dark`. They
+sit in `::before` pseudo-elements at 10% and 6% opacity so the decoration
+can never reduce text contrast. Footer columns are placeholders.
+
 **Two themes**, toggled from the header and remembered per browser. Dark
 is the default and is unchanged. Light is a soft white — `#F6F8F6`, not
 stark `#FFFFFF` — with the teal and amber darkened so they still carry
