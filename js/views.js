@@ -28,24 +28,31 @@ var Views = (function () {
   function subjectName(s) { return SUBJECT_NAMES[s] || s; }
 
   /* ---------------------------------------------------------- */
-  /* Landing: name + code, nothing else                          */
+  /* Landing: pick a name, type a password                       */
   /* ---------------------------------------------------------- */
   function login(failed) {
+    var opts = ['<option value="">Choose your name</option>'].concat(
+      Auth.roster().map(function (r) {
+        return '<option value="' + esc(r.slug) + '">' + esc(r.name) + '</option>';
+      })
+    ).join('');
+
     return '' +
       '<div class="loginbox">' +
         '<h1>Who is working today?</h1>' +
         '<div class="field">' +
           '<label for="lname">Your name</label>' +
-          '<input id="lname" class="textfield" type="text" autocomplete="off" ' +
-            'autocapitalize="words" spellcheck="false">' +
+          '<select id="lname" class="textfield select">' + opts + '</select>' +
         '</div>' +
         '<div class="field">' +
-          '<label for="lcode">Your code</label>' +
+          '<label for="lcode">Your password</label>' +
           '<input id="lcode" class="textfield code" type="password" autocomplete="off" ' +
             'autocapitalize="off" spellcheck="false">' +
         '</div>' +
-        (failed ? '<p class="gate-again">That is not quite right. Check the spelling and try again.</p>' : '') +
-        '<div class="btnrow"><button class="btn solid" data-act="login">Go</button></div>' +
+        (failed ? '<p class="gate-again">That is not quite right. Try again.</p>' : '') +
+        '<div class="btnrow">' +
+          '<button class="btn solid" data-act="login">Let us begin</button>' +
+        '</div>' +
       '</div>';
   }
 
@@ -58,7 +65,7 @@ var Views = (function () {
   /* Session: warm-up, then today, then the rest of the queue    */
   /* ---------------------------------------------------------- */
   function learner(slug) {
-    var L = (window.LEARNERS || {})[slug];
+    var L = Auth.record();
     if (!L) return notFound();
 
     var queue = (L.queue || []).map(Topics.get).filter(Boolean);
@@ -67,7 +74,7 @@ var Views = (function () {
       if (!Store.isDone(slug, queue[i].id)) { next = queue[i]; break; }
     }
 
-    var html = '<p class="eyebrow">' + esc(L.nickname || L.name || slug) + ' &middot; ' +
+    var html = '<p class="eyebrow">' + esc(Auth.nameOf(slug)) + ' &middot; ' +
                esc((L.levels || []).join(', ')) + '</p>';
 
     /* --- warm-up --- */
@@ -253,7 +260,7 @@ var Views = (function () {
         : '<button class="btn solid" data-act="done" data-topic="' + esc(id) + '">Finished this one</button>';
       html += '<a class="btn" href="#/k/' + esc(slug) + '">Back to the list</a>';
 
-      var L = (window.LEARNERS || {})[slug];
+      var L = Auth.record();
       if (L && L.homework === 'print') {
         html += '<button class="btn quiet" data-act="print">Print as a worksheet</button>';
       }

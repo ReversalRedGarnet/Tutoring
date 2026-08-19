@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebuild learners.js</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .tool { max-width: 52rem; }
+  .tool textarea {
+    font-family: var(--font-mono); font-size: .85rem; width: 100%;
+    min-height: 12rem; padding: .75rem; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--paper); color: var(--ink);
+    resize: vertical; line-height: 1.5;
+  }
+  .tool textarea:focus { border-color: var(--teal); }
+  .warn { border-left: 3px solid var(--amber); padding-left: .9rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <span class="brand"><span class="brand-text">study<span class="brand-caret">_</span></span></span>
+  <nav class="topnav"><a href="../index.html">Back to the site</a></nav>
+  <div class="topbar-rule"></div>
+</header>
+
+<main class="stage">
+<div class="page tool">
+
+  <p class="eyebrow">Tutor tool</p>
+  <h1>Rebuild learners.js</h1>
+
+  <p class="warn muted">Runs entirely in this page. Nothing is uploaded.
+  Do not commit anything you paste in here — only the generated output.</p>
+
+  <h2>1. Paste the source</h2>
+  <p class="muted">The contents of <code>private/learners.source.js</code>, or
+  just the object inside it.</p>
+  <textarea id="src" spellcheck="false"></textarea>
+
+  <div class="btnrow">
+    <button class="btn solid" id="go">Encrypt</button>
+    <button class="btn quiet" id="copy">Copy the output</button>
+  </div>
+
+  <p id="status" class="muted"></p>
+
+  <h2>2. Save this over js/data/learners.js</h2>
+  <textarea id="out" spellcheck="false" readonly></textarea>
+
+</div>
+</main>
+
+<script src="../js/crypto.js"></script>
+<script>
+(function () {
+  var src = document.getElementById('src');
+  var out = document.getElementById('out');
+  var status = document.getElementById('status');
+
+  var HEADER =
+'/* ------------------------------------------------------------------\n' +
+'   LEARNERS — generated file. Do not hand-edit.\n' +
+'\n' +
+'   Edit private/learners.source.js instead, then regenerate this with\n' +
+'   tools/encrypt.html. The plaintext source is gitignored.\n' +
+'\n' +
+'   Each entry holds:\n' +
+'     name    the child\'s name, in the clear because the login dropdown\n' +
+'             has to render it\n' +
+'     verify  a slow-derived check value for the password\n' +
+'     data    levels, subjects, homework and topic queue, encrypted\n' +
+'             with that password\n' +
+'\n' +
+'   So this file discloses who is taught. It does not disclose what any\n' +
+'   named child is struggling with, which is the part that matters.\n' +
+'\n' +
+'   Still keep the repo private. This is defence in depth, not a reason\n' +
+'   to relax the main protection.\n' +
+'   ------------------------------------------------------------------ */\n\n' +
+'window.LEARNERS = {\n';
+
+  function parse(text) {
+    var t = text.trim();
+    var i = t.indexOf('{');
+    var j = t.lastIndexOf('}');
+    if (i < 0 || j < 0) throw new Error('No object found in that text.');
+    return (new Function('return (' + t.slice(i, j + 1) + ');'))();
+  }
+
+  document.getElementById('go').addEventListener('click', function () {
+    status.textContent = 'Working — the key derivation is slow on purpose.';
+    out.value = '';
+
+    setTimeout(function () {
+      try {
+        var source = parse(src.value);
+        var slugs = Object.keys(source);
+        if (!slugs.length) throw new Error('That object is empty.');
+
+        var entries = slugs.map(function (slug) {
+          var L = source[slug];
+          if (!L.name) throw new Error(slug + ' has no name.');
+          if (!L.password) throw new Error(slug + ' has no password.');
+          if (!L.record) throw new Error(slug + ' has no record.');
+
+          var blob = Crypt.encrypt(L.record, L.password);
+
+          /* Refuse to emit anything that does not decrypt back. */
+          if (JSON.stringify(Crypt.decrypt(blob, L.password)) !== JSON.stringify(L.record)) {
+            throw new Error('Round trip failed for ' + slug + '. Nothing was written.');
+          }
+
+          var wrapped = blob.match(/.{1,64}/g)
+            .map(function (x) { return "      '" + x + "'"; }).join(' +\n');
+
+          return '\n  ' + slug + ': {\n' +
+                 "    name: '" + L.name + "',\n" +
+                 "    verify: '" + Crypt.verifier(L.password) + "',\n" +
+                 '    data:\n' + wrapped + '\n  }';
+        });
+
+        out.value = HEADER + entries.join(',\n') + '\n\n};\n';
+        status.textContent = slugs.length + ' learners encrypted and verified.';
+      } catch (e) {
+        status.textContent = 'Stopped: ' + e.message;
+      }
+    }, 20);
+  });
+
+  document.getElementById('copy').addEventListener('click', function () {
+    if (!out.value) { status.textContent = 'Nothing to copy yet.'; return; }
+    out.select();
+    try { document.execCommand('copy'); status.textContent = 'Copied.'; }
+    catch (e) { status.textContent = 'Select the box and copy manually.'; }
+  });
+})();
+</script>
+
+</body>
+</html>

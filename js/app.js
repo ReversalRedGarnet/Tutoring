@@ -41,17 +41,13 @@
 
     if (parts[0] === 'k' && parts[1]) {
       var slug = parts[1];
-      var L = (window.LEARNERS || {})[slug];
-      if (!L) {
-        html = Views.notFound();
-      } else if (!Auth.isUnlocked(slug)) {
+      if (!Auth.isUnlocked(slug)) {
         location.hash = '#/';
         return;
-      } else {
-        rememberSlug(slug);
-        html = Views.learner(slug);
-        document.title = (L.name || slug) + ' — Study';
       }
+      rememberSlug(slug);
+      html = Views.learner(slug);
+      document.title = Auth.nameOf(slug) + ' — Study';
 
     } else if (parts[0] === 't' && parts[1]) {
       if (!current.slug) current.slug = recallSlug();
@@ -74,13 +70,12 @@
       document.title = 'Study';
     }
 
-    document.body.classList.toggle('is-login', !parts.length);
 
     view.innerHTML = html;
     renderNav();
     window.scrollTo(0, 0);
 
-    var first = view.querySelector('.textfield');
+    var first = view.querySelector('.field-control');
     if (first) first.focus(); else view.focus();
   }
 
@@ -156,20 +151,28 @@
     var code = view.querySelector('#lcode');
     if (!name || !code) return;
 
-    var slug = Auth.login(name.value, code.value);
-    if (slug) {
-      loginFailed = false;
-      location.hash = '#/k/' + slug;
-    } else {
-      loginFailed = true;
-      route();
-    }
+    if (!name.value) { name.focus(); return; }
+
+    /* Key derivation is deliberately slow, so say something first. */
+    var btn = view.querySelector('[data-act="login"]');
+    if (btn) { btn.textContent = 'One moment'; btn.disabled = true; }
+
+    setTimeout(function () {
+      var slug = Auth.login(name.value, code.value);
+      if (slug) {
+        loginFailed = false;
+        location.hash = '#/k/' + slug;
+      } else {
+        loginFailed = true;
+        route();
+      }
+    }, 20);
   }
 
-  /* Enter moves on from the name box and submits from the code box. */
+  /* Enter moves on from the name dropdown and submits from the password. */
   view.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Enter') return;
-    var field = ev.target.closest('.textfield');
+    var field = ev.target.closest('.field-control');
     if (!field) return;
     ev.preventDefault();
     if (field.id === 'lname') {
@@ -178,6 +181,19 @@
       return;
     }
     doLogin();
+  });
+
+  /* Picking a name jumps straight to the password box. */
+  view.addEventListener('change', function (ev) {
+    if (ev.target.id !== 'lname' || !ev.target.value) return;
+    var code = view.querySelector('#lcode');
+    if (code) code.focus();
+  });
+
+  view.addEventListener('change', function (ev) {
+    if (ev.target.id !== 'lname' || !ev.target.value) return;
+    var code = view.querySelector('#lcode');
+    if (code) code.focus();
   });
 
   window.addEventListener('hashchange', route);

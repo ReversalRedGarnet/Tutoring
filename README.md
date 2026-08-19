@@ -22,11 +22,14 @@ root folder.
 ## What goes where
 
 ```
-index.html              shell — nothing but the frame
+index.html              shell, header and footer
+tools/encrypt.html      regenerates learners.js (tutor only)
+private/                plaintext learner records — gitignored
 css/style.css           all styling
 js/data/topics.*.js     the library, one file per subject
 js/data/learners.js     slug -> ordered list of topic ids
-js/store.js             progress, password check, graph helpers
+js/crypto.js            SHA-256, key derivation, record cipher
+js/store.js             progress, login, session, graph helpers
 js/views.js             renderers, one function per screen
 js/app.js               hash router, one delegated click handler
 ```
@@ -65,31 +68,36 @@ committed.
 
 ### Logging in
 
-The landing page asks for a name and a code. The name matches the real
-name, the nickname, or the key, in any capitalisation. The code is stored
-in `learners.js` as a salted FNV-1a hash.
+The landing page shows a dropdown of names and a password box.
 
-A wrong name and a wrong code give the same message on purpose, so a
-mistyped name does not read to a kid as being told they do not belong.
+**Names are in the clear** in `js/data/learners.js`. A dropdown has to
+render them, so this is the cost of the dropdown — the two requests pull
+against each other and the dropdown won.
 
-**This is a name tag, not a lock.** The site is static — no server — so the
-check runs in the browser and the browser can be read. The hash stops one
-kid reading another kid's code over a shoulder. It stops nothing else, and
-it is not what is protecting the children's names — the private repo is.
+**Everything else is encrypted.** Each learner's levels, subjects,
+homework setting and topic queue are encrypted with their own password
+and stored as a base64 blob. Someone reading the source sees five names
+and two opaque strings each. They cannot tell what any named child is
+working on — which is the part that actually matters, because "Letisha,
+fractions, Year 7" is a statement about a child and "Letisha" on its own
+is not.
 
-These codes must not be ones the kids use anywhere else.
+Under the hood: SHA-256 implemented in plain JS (verified against Node's
+implementation), 60,000 rounds of derivation to make each password guess
+cost real time, a keystream cipher, and an 8-byte tag so a wrong password
+is detected rather than yielding garbage. Verification and decryption use
+separately salted keys, so the stored check value cannot shortcut the
+decryption.
 
-Unlocking uses `sessionStorage`, so it clears when the browser closes and
-when anyone hits "Finish". On a shared laptop a permanent unlock would make
-the password pointless by the second session.
+WebCrypto would be the obvious choice, but `crypto.subtle` is unavailable
+in a non-secure context and this site gets opened from `file://` during
+sessions. Hence the hand-rolled version.
 
-To change one, open the browser console on the site and run:
-
-```js
-Auth.hash('newword')
-```
-
-then paste the result in as `code`. A learner with no `code` set is open.
+**What this is not.** It is not protection against a determined adult.
+The passwords are short dictionary words, so anyone willing to spend
+compute will get through, and once a kid logs in their own record is
+decrypted in their own browser as it must be. The private repo is still
+the main protection. This is defence in depth.
 
 ---
 
@@ -118,6 +126,25 @@ diagnosis usually lands.
 
 `m6-frac-equiv` and `m7-frac-add-unlike` are written out as `taught` so
 there is a worked example to copy the shape from. Everything else is a stub.
+
+---
+
+## Changing what a learner is working on
+
+`js/data/learners.js` is generated — do not hand-edit it.
+
+1. Edit `private/learners.source.js`, which is the readable version and is
+   gitignored.
+2. Open `tools/encrypt.html` in a browser, paste the source in, press
+   Encrypt.
+3. Save the output over `js/data/learners.js`.
+
+The tool decrypts everything it produces before showing it to you, and
+refuses to emit anything that does not round trip. It runs entirely in the
+page — nothing is uploaded.
+
+If you lose `private/learners.source.js` you can still recover every
+record by logging in as each child, but it is much easier to keep the file.
 
 ---
 
@@ -186,6 +213,23 @@ connection before he makes it.
 
 **One idea per screen**, large type, Atkinson Hyperlegible for the body
 text — a face designed for legibility rather than for looks.
+
+**Palette** is a soft blue: `--deep` for the header, `--blue` for anything
+clickable, `--wash` for panels, `--amber` reserved for hints and the login
+retry. Nothing in the interface is red. Change the tokens at the top of
+`style.css` and the whole site follows.
+
+**Header and footer** carry a faint circuit-trace pattern, drawn as inline
+SVG data URIs in the CSS variables `--trace-light` and `--trace-dark`. They
+sit in `::before` pseudo-elements at 10% and 6% opacity so the decoration
+can never reduce text contrast. Footer columns are placeholders.
+
+**Dark teal throughout**, with one bright teal doing all the pointing and
+amber reserved for hints and retries — so nothing that reads as a mark
+ever appears in a warning colour. The header and footer carry faint
+circuit traces and a node-and-edge mark, which is the prerequisite graph
+itself: three nodes with an edge through them, the same idea as the ladder
+rail on a topic page.
 
 **Short pages centre themselves** vertically and horizontally; long ones
 grow and scroll from the top. Paragraphs and practice questions stay

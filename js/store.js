@@ -83,87 +83,77 @@ var Store = (function () {
 
 
 /* ------------------------------------------------------------------
-   Auth — a name tag, not a lock.
+   Auth + Session
 
-   This is a static site. There is no server to check anything, so the
-   check happens in the browser and the browser can be read. This stops
-   one kid opening another kid's list. It stops nothing else, and it is
-   only adequate because nothing sensitive is stored here.
+   A learner's record — levels, subjects, homework, topic queue — is
+   encrypted with their password and only exists in the clear after they
+   log in. It is held for the browser session and dropped when the
+   browser closes or when anyone hits Finish. On a shared laptop that
+   matters: the next kid to sit down starts from the login screen.
 
-   Unlocking uses sessionStorage on purpose: it clears when the browser
-   closes. On a shared laptop a permanent unlock would make the password
-   pointless by the second session.
+   The names themselves are in the clear, because the dropdown has to
+   render them. See js/data/learners.js.
    ------------------------------------------------------------------ */
 
 var Auth = (function () {
 
-  var KEY = 'study:unlocked';
+  var SLUG = 'study:who';
+  var REC = 'study:record';
 
-  /* FNV-1a, salted. Not cryptography — obfuscation, and it is labelled
-     as such everywhere it appears. */
-  function hash(s) {
-    var h = 0x811c9dc5;
-    s = 'study:' + String(s == null ? '' : s).trim().toLowerCase();
-    for (var i = 0; i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
-    }
-    return ('0000000' + h.toString(16)).slice(-8);
-  }
-
-  function unlocked() {
-    try { return sessionStorage.getItem(KEY); } catch (e) { return null; }
-  }
-
-  function norm(s) {
-    return String(s == null ? '' : s).trim().toLowerCase();
-  }
-
-  /* Accepts the real name, the nickname, or the key. Kids type what they
-     think of as their name; any of the three should get them in. */
-  function findByName(name) {
-    var want = norm(name);
-    if (!want) return null;
-    var found = null;
-    Object.keys(window.LEARNERS || {}).forEach(function (slug) {
-      if (found) return;
-      var L = window.LEARNERS[slug];
-      if (norm(slug) === want || norm(L.name) === want || norm(L.nickname) === want) {
-        found = slug;
-      }
-    });
-    return found;
+  function ss(key) {
+    try { return sessionStorage.getItem(key); } catch (e) { return null; }
   }
 
   return {
-    hash: hash,
-    findByName: findByName,
 
-    /* A learner with no `code` set is simply open. */
-    needsCode: function (slug) {
+    /* For the dropdown: [{ slug, name }], alphabetical. */
+    roster: function () {
+      return Object.keys(window.LEARNERS || {}).map(function (slug) {
+        return { slug: slug, name: (window.LEARNERS[slug] || {}).name || slug };
+      }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+    },
+
+    nameOf: function (slug) {
       var L = (window.LEARNERS || {})[slug];
-      return !!(L && L.code);
+      return L ? (L.name || slug) : slug;
     },
 
-    isUnlocked: function (slug) {
-      if (!Auth.needsCode(slug)) return true;
-      return unlocked() === slug;
-    },
+    /* Returns the slug on success, null on failure. Verifying and
+       decrypting use separately salted keys, so the check value cannot
+       shortcut the decryption. */
+    login: function (slug, password) {
+      var L = (window.LEARNERS || {})[slug];
+      if (!L) return null;
+      if (L.verify && Crypt.verifier(password) !== L.verify) return null;
 
-    /* Returns the slug on success, null on failure. Deliberately does not
-       say which half was wrong — and the kid gets the same message either
-       way, so a wrong name does not read as an accusation. */
-    login: function (name, code) {
-      var slug = findByName(name);
-      if (!slug) return null;
-      var L = window.LEARNERS[slug];
-      if (L.code && hash(code) !== L.code) return null;
-      try { sessionStorage.setItem(KEY, slug); } catch (e) {}
+      var record = Crypt.decrypt(L.data, password);
+      if (!record) return null;
+
+      try {
+        sessionStorage.setItem(SLUG, slug);
+        sessionStorage.setItem(REC, JSON.stringify(record));
+      } catch (e) {}
       return slug;
     },
 
+    isUnlocked: function (slug) {
+      return !!slug && ss(SLUG) === slug && !!ss(REC);
+    },
+
+    who: function () { return ss(SLUG); },
+
+    /* The decrypted record, or null if nobody is logged in. */
+    record: function () {
+      var raw = ss(REC);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (e) { return null; }
+    },
+
     lock: function () {
-      try { sessionStorage.removeItem(KEY); } catch (e) {}
+      try {
+        sessionStorage.removeItem(SLUG);
+        sessionStorage.removeItem(REC);
+      } catch (e) {}
     }
   };
 })();

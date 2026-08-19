@@ -3,17 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>Study</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<!-- The mark is the prerequisite graph itself: three nodes and the edge
+     running through them. Same idea as the ladder rail on a topic. -->
+<svg class="svg-defs" aria-hidden="true" focusable="false">
+  <symbol id="mark" viewBox="0 0 28 28">
+    <path d="M6 21 L14 14 L22 7" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" opacity=".55"/>
+    <circle cx="6"  cy="21" r="3.2" fill="currentColor" opacity=".5"/>
+    <circle cx="14" cy="14" r="3.2" fill="currentColor" opacity=".75"/>
+    <circle cx="22" cy="7"  r="3.2" fill="currentColor"/>
+  </symbol>
+</svg>
+
 <header class="topbar" id="topbar">
-  <a class="brand" href="#/">Study</a>
+  <a class="brand" href="#/">
+    <svg class="brand-mark" aria-hidden="true"><use href="#mark"/></svg>
+    <span class="brand-text">study<span class="brand-caret">_</span></span>
+  </a>
   <nav class="topnav" id="topnav"></nav>
+  <div class="topbar-rule" aria-hidden="true"></div>
 </header>
 
 <main class="stage">
@@ -21,9 +38,39 @@
 </main>
 
 <footer class="foot">
-  <p>Your work is saved on this computer only. Nothing is sent anywhere.</p>
+  <div class="foot-trace" aria-hidden="true"></div>
+  <div class="foot-inner">
+
+    <div class="foot-brand">
+      <svg class="foot-mark" aria-hidden="true"><use href="#mark"/></svg>
+      <p class="foot-tag">One idea at a time.</p>
+    </div>
+
+    <!-- Placeholder columns. Fill these in later. -->
+    <nav class="foot-cols">
+      <div class="foot-col">
+        <p class="foot-head">Learning</p>
+        <a href="#/map">Topic map</a>
+        <a href="#/">Sign in</a>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">For parents</p>
+        <span class="foot-soon">Coming soon</span>
+        <span class="foot-soon">Coming soon</span>
+      </div>
+      <div class="foot-col">
+        <p class="foot-head">About</p>
+        <span class="foot-soon">Coming soon</span>
+        <span class="foot-soon">Coming soon</span>
+      </div>
+    </nav>
+
+  </div>
+
+  <p class="foot-note">Your work is saved on this computer only. Nothing is sent anywhere.</p>
 </footer>
 
+<script src="js/crypto.js"></script>
 <script src="js/data/topics.maths.js"></script>
 <script src="js/data/topics.science.js"></script>
 <script src="js/data/topics.english.js"></script>
