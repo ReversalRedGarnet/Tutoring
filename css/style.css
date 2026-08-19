@@ -33,6 +33,12 @@ body {
   font-family: var(--font-body);
   font-size: 1.0625rem;
   line-height: 1.65;
+
+  /* Column layout so the stage can absorb leftover height and centre
+     what sits in it. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 h1, h2, h3 {
@@ -91,19 +97,78 @@ a { color: var(--eucalypt); }
 
 .topnav a:hover { color: #FFF; text-decoration: underline; }
 
-main {
+/* The stage fills whatever height is left over. `.page` then centres
+   itself inside it with auto margins on both axes — so short content
+   sits in the middle of the screen, and long content simply grows the
+   stage and scrolls from the top with nothing clipped. */
+.stage {
+  flex: 1 1 auto;
+  display: flex;
+  width: 100%;
+}
+
+.page {
+  width: 100%;
   max-width: var(--measure);
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+  margin: auto;
+  padding: 2rem 1.25rem 3rem;
 }
 
 .foot {
   max-width: var(--measure);
+  width: 100%;
   margin: 0 auto;
-  padding: 0 1.25rem 3rem;
+  padding: 0 1.25rem 2rem;
   color: var(--ink-soft);
   font-size: .85rem;
+  text-align: center;
 }
+
+/* ============================================================
+   Login screen — no chrome, centred, one job
+   ============================================================ */
+body.is-login .topbar { display: none; }
+
+.loginbox {
+  max-width: 20rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.loginbox h1 { margin-bottom: 1.75rem; }
+
+.field {
+  text-align: left;
+  margin: 0 0 1rem;
+}
+
+.field label {
+  display: block;
+  font-size: .9rem;
+  color: var(--ink-soft);
+  margin-bottom: .3rem;
+}
+
+.textfield {
+  font: inherit;
+  width: 100%;
+  padding: .6rem .75rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.textfield.code {
+  font-family: var(--font-mono);
+  letter-spacing: .15em;
+}
+
+.textfield:focus { border-color: var(--eucalypt); }
+
+.loginbox .btnrow { justify-content: center; }
+
+.loginbox .btn { min-width: 7rem; }
 
 /* ============================================================
    Shared pieces
@@ -347,18 +412,6 @@ a.chip:hover { background: var(--eucalypt); color: #FFF; }
 
 .subjblock { margin: 0 0 2rem; }
 
-.passfield {
-  font: inherit;
-  font-family: var(--font-mono);
-  width: 100%;
-  padding: .6rem .7rem;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: #FCFDFB;
-  letter-spacing: .15em;
-}
-
-.passfield:focus { border-color: var(--eucalypt); }
 
 .gate-again {
   margin: .6rem 0 0;
@@ -375,8 +428,9 @@ a.chip:hover { background: var(--eucalypt); color: #FFF; }
    ============================================================ */
 @media print {
   .topbar, .foot, .btnrow, .btn, .noprint, .answer, .hintbox, .ladder { display: none !important; }
-  body { background: #FFF; font-size: 12pt; }
-  main { max-width: none; padding: 0; }
+  body { background: #FFF; font-size: 12pt; display: block; min-height: 0; }
+  .stage { display: block; }
+  .page { max-width: none; margin: 0; padding: 0; }
   .item, .card { border: 1px solid #999; break-inside: avoid; }
   .oneidea { background: #FFF; border: 1px solid #999; }
   .scratch { min-height: 5rem; background: #FFF; }

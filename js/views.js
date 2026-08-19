@@ -28,39 +28,24 @@ var Views = (function () {
   function subjectName(s) { return SUBJECT_NAMES[s] || s; }
 
   /* ---------------------------------------------------------- */
-  /* Landing: choose who is sitting at the keyboard              */
+  /* Landing: name + code, nothing else                          */
   /* ---------------------------------------------------------- */
-  function pick() {
-    var slugs = Object.keys(window.LEARNERS || {});
-    var links = slugs.map(function (s) {
-      var L = window.LEARNERS[s];
-      return '<a href="#/k/' + esc(s) + '">' + esc(L.display || s) + '</a>';
-    }).join('');
-
+  function login(failed) {
     return '' +
-      '<h1>Who is working today?</h1>' +
-      '<div class="slugrow">' + links + '</div>' +
-      '<p style="margin-top:2.5rem"><a href="#/map">Topic map</a></p>';
-  }
-
-  /* ---------------------------------------------------------- */
-  /* Password gate                                               */
-  /* ---------------------------------------------------------- */
-  function gate(slug, failed) {
-    var L = (window.LEARNERS || {})[slug];
-    if (!L) return notFound();
-
-    return '' +
-      '<h1>Hello ' + esc(L.display || slug) + '</h1>' +
-      '<div class="card" style="max-width:22rem">' +
-        '<label for="pass" style="display:block;margin-bottom:.5rem">Your word</label>' +
-        '<input id="pass" class="passfield" type="password" autocomplete="off" ' +
-          'autocapitalize="off" spellcheck="false" data-slug="' + esc(slug) + '">' +
-        (failed ? '<p class="gate-again">That is not the word. Try again.</p>' : '') +
-        '<div class="btnrow">' +
-          '<button class="btn solid" data-act="unlock" data-slug="' + esc(slug) + '">Go</button>' +
-          '<a class="btn quiet" href="#/">Not me</a>' +
+      '<div class="loginbox">' +
+        '<h1>Who is working today?</h1>' +
+        '<div class="field">' +
+          '<label for="lname">Your name</label>' +
+          '<input id="lname" class="textfield" type="text" autocomplete="off" ' +
+            'autocapitalize="words" spellcheck="false">' +
         '</div>' +
+        '<div class="field">' +
+          '<label for="lcode">Your code</label>' +
+          '<input id="lcode" class="textfield code" type="password" autocomplete="off" ' +
+            'autocapitalize="off" spellcheck="false">' +
+        '</div>' +
+        (failed ? '<p class="gate-again">That is not quite right. Check the spelling and try again.</p>' : '') +
+        '<div class="btnrow"><button class="btn solid" data-act="login">Go</button></div>' +
       '</div>';
   }
 
@@ -82,7 +67,7 @@ var Views = (function () {
       if (!Store.isDone(slug, queue[i].id)) { next = queue[i]; break; }
     }
 
-    var html = '<p class="eyebrow">' + esc(L.display || slug) + ' &middot; ' +
+    var html = '<p class="eyebrow">' + esc(L.nickname || L.name || slug) + ' &middot; ' +
                esc((L.levels || []).join(', ')) + '</p>';
 
     /* --- warm-up --- */
@@ -318,6 +303,6 @@ var Views = (function () {
     return html;
   }
 
-  return { pick: pick, gate: gate, learner: learner, topic: topic, map: map,
+  return { login: login, learner: learner, topic: topic, map: map,
            notFound: notFound, subjectName: subjectName };
 })();

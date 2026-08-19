@@ -115,26 +115,51 @@ var Auth = (function () {
     try { return sessionStorage.getItem(KEY); } catch (e) { return null; }
   }
 
+  function norm(s) {
+    return String(s == null ? '' : s).trim().toLowerCase();
+  }
+
+  /* Accepts the real name, the nickname, or the key. Kids type what they
+     think of as their name; any of the three should get them in. */
+  function findByName(name) {
+    var want = norm(name);
+    if (!want) return null;
+    var found = null;
+    Object.keys(window.LEARNERS || {}).forEach(function (slug) {
+      if (found) return;
+      var L = window.LEARNERS[slug];
+      if (norm(slug) === want || norm(L.name) === want || norm(L.nickname) === want) {
+        found = slug;
+      }
+    });
+    return found;
+  }
+
   return {
     hash: hash,
+    findByName: findByName,
 
-    /* A learner with no `pass` set is simply open. */
-    needsPass: function (slug) {
+    /* A learner with no `code` set is simply open. */
+    needsCode: function (slug) {
       var L = (window.LEARNERS || {})[slug];
-      return !!(L && L.pass);
+      return !!(L && L.code);
     },
 
     isUnlocked: function (slug) {
-      if (!Auth.needsPass(slug)) return true;
+      if (!Auth.needsCode(slug)) return true;
       return unlocked() === slug;
     },
 
-    tryUnlock: function (slug, attempt) {
-      var L = (window.LEARNERS || {})[slug];
-      if (!L) return false;
-      if (hash(attempt) !== L.pass) return false;
+    /* Returns the slug on success, null on failure. Deliberately does not
+       say which half was wrong — and the kid gets the same message either
+       way, so a wrong name does not read as an accusation. */
+    login: function (name, code) {
+      var slug = findByName(name);
+      if (!slug) return null;
+      var L = window.LEARNERS[slug];
+      if (L.code && hash(code) !== L.code) return null;
       try { sessionStorage.setItem(KEY, slug); } catch (e) {}
-      return true;
+      return slug;
     },
 
     lock: function () {

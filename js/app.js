@@ -13,7 +13,7 @@
   var view = document.getElementById('view');
   var nav = document.getElementById('topnav');
   var current = { slug: null };
-  var gateFailed = false;
+  var loginFailed = false;
 
   var LAST_KEY = 'study:last-slug';
 
@@ -45,13 +45,12 @@
       if (!L) {
         html = Views.notFound();
       } else if (!Auth.isUnlocked(slug)) {
-        html = Views.gate(slug, gateFailed);
-        gateFailed = false;
-        document.title = (L.display || slug) + ' — Study';
+        location.hash = '#/';
+        return;
       } else {
         rememberSlug(slug);
         html = Views.learner(slug);
-        document.title = (L.display || slug) + ' — Study';
+        document.title = (L.name || slug) + ' — Study';
       }
 
     } else if (parts[0] === 't' && parts[1]) {
@@ -70,16 +69,19 @@
     } else {
       Auth.lock();
       rememberSlug(null);
-      html = Views.pick();
+      html = Views.login(loginFailed);
+      loginFailed = false;
       document.title = 'Study';
     }
+
+    document.body.classList.toggle('is-login', !parts.length);
 
     view.innerHTML = html;
     renderNav();
     window.scrollTo(0, 0);
 
-    var pass = view.querySelector('.passfield');
-    if (pass) pass.focus(); else view.focus();
+    var first = view.querySelector('.textfield');
+    if (first) first.focus(); else view.focus();
   }
 
   /* ---------------------------------------------------------- */
@@ -138,8 +140,8 @@
       return;
     }
 
-    if (act === 'unlock') {
-      doUnlock(btn.getAttribute('data-slug'));
+    if (act === 'login') {
+      doLogin();
       return;
     }
 
@@ -149,25 +151,33 @@
     }
   });
 
-  function doUnlock(slug) {
-    var field = view.querySelector('.passfield');
-    if (!field) return;
-    if (Auth.tryUnlock(slug, field.value)) {
-      gateFailed = false;
-      route();
+  function doLogin() {
+    var name = view.querySelector('#lname');
+    var code = view.querySelector('#lcode');
+    if (!name || !code) return;
+
+    var slug = Auth.login(name.value, code.value);
+    if (slug) {
+      loginFailed = false;
+      location.hash = '#/k/' + slug;
     } else {
-      gateFailed = true;
+      loginFailed = true;
       route();
     }
   }
 
-  /* Enter submits the password box. */
+  /* Enter moves on from the name box and submits from the code box. */
   view.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Enter') return;
-    var field = ev.target.closest('.passfield');
+    var field = ev.target.closest('.textfield');
     if (!field) return;
     ev.preventDefault();
-    doUnlock(field.getAttribute('data-slug'));
+    if (field.id === 'lname') {
+      var code = view.querySelector('#lcode');
+      if (code) code.focus();
+      return;
+    }
+    doLogin();
   });
 
   window.addEventListener('hashchange', route);

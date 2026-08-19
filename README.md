@@ -37,13 +37,23 @@ Routes are hash-based: `#/`, `#/k/<slug>`, `#/t/<topic-id>`, `#/map`.
 
 ## Privacy — read before committing anything
 
-This repo is public. Assume everything in it is permanent and indexed.
+**This repo must stay private.** `learners.js` contains real first names
+attached to the topics each child is struggling with. That combination is
+fine behind a private repo with parental permission and is not fine
+anywhere else.
 
-**Never commit:** real names, ages, schools, marks, grades, comments on
-how anyone is doing, or anything derived from the profile spreadsheet.
+Note that a private repo does **not** make a published Pages site private.
+If Pages is serving from this repo, the site is on the open web regardless
+of the repo setting. On the free plan, making the repo private takes the
+Pages site down entirely — which is one way to be sure, but check before
+relying on it.
 
-`learners.js` holds only a slug, the levels, and an ordered list of topic
-ids. That is deliberate and it is the ceiling, not a starting point.
+**Never commit:** ages, schools, marks, grades, comments on how anyone is
+doing, or anything derived from the profile spreadsheet.
+
+If this ever needs to go public, the fix is small: hash the names the same
+way the codes are hashed. Login still works — the site only needs to check
+a name, never display a list — and the file then names nobody.
 
 Progress is kept in `localStorage` on whichever computer the kid used.
 There is no server, so there is nothing to leak and nothing to breach.
@@ -53,17 +63,21 @@ acceptable trade for not holding children's performance data anywhere.
 Keep the nickname-to-real-name mapping in a private file that is never
 committed.
 
-### Passwords
+### Logging in
 
-Each learner has a `pass` in `learners.js`, stored as a salted FNV-1a hash.
+The landing page asks for a name and a code. The name matches the real
+name, the nickname, or the key, in any capitalisation. The code is stored
+in `learners.js` as a salted FNV-1a hash.
+
+A wrong name and a wrong code give the same message on purpose, so a
+mistyped name does not read to a kid as being told they do not belong.
 
 **This is a name tag, not a lock.** The site is static — no server — so the
 check runs in the browser and the browser can be read. The hash stops one
-kid reading another kid's word out of the repo or over a shoulder. It stops
-nothing else. That is adequate only because nothing sensitive is stored
-here, and it stops being adequate the moment that changes.
+kid reading another kid's code over a shoulder. It stops nothing else, and
+it is not what is protecting the children's names — the private repo is.
 
-These words must not be ones the kids use anywhere else.
+These codes must not be ones the kids use anywhere else.
 
 Unlocking uses `sessionStorage`, so it clears when the browser closes and
 when anyone hits "Finish". On a shared laptop a permanent unlock would make
@@ -75,7 +89,7 @@ To change one, open the browser console on the site and run:
 Auth.hash('newword')
 ```
 
-then paste the result in as `pass`. A learner with no `pass` set is open.
+then paste the result in as `code`. A learner with no `code` set is open.
 
 ---
 
@@ -172,6 +186,12 @@ connection before he makes it.
 
 **One idea per screen**, large type, Atkinson Hyperlegible for the body
 text — a face designed for legibility rather than for looks.
+
+**Short pages centre themselves** vertically and horizontally; long ones
+grow and scroll from the top. Paragraphs and practice questions stay
+left-aligned — centred body text is measurably harder to read, and the kid
+who tires fastest is the one who would pay for it. Only the login screen,
+which is three short lines, is centre-aligned as text.
 
 ---
 

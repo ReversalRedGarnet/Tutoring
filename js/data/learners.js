@@ -1,31 +1,32 @@
 /* ------------------------------------------------------------------
    LEARNERS
 
-   This file is PUBLIC. It goes in a public repo and stays there forever.
+   Real names are in this file. That is only acceptable while the repo
+   is private and the parents have agreed to it. Both of those are true
+   right now — keep checking that they still are.
 
-   What belongs here:  a slug, a display name, the levels they work at,
-                       and an ordered list of topic ids.
-   What does NOT:      real names, ages, schools, marks, grades, comments
-                       on how anyone is doing, anything from the profile
+   What belongs here:  name, nickname, code, levels, and an ordered list
+                       of topic ids.
+   What does NOT:      ages, schools, marks, grades, comments on how
+                       anyone is doing, anything from the profile
                        spreadsheet. Keep that in a private file that is
                        never committed.
 
-   ABOUT `pass`
+   Note that `queue` is now readable as "what this named child is
+   struggling with". That is a step up in sensitivity from a slug and a
+   topic list. It is fine in a private repo and it is not fine in a
+   public one.
+
+   ABOUT `code`
    ------------
-   This is a name tag, not a lock. The site is a static page with no
-   server, so anything it knows, the browser knows, and anyone can read
-   it. The hash below stops one kid from reading another kid's password
-   over their shoulder or out of the repo. It stops nothing else.
-
-   Which is fine, because there is nothing sensitive behind it. Keep it
-   that way: the moment real notes or marks go on this site, the password
-   stops being adequate.
-
-   These passwords must not be ones the kids use anywhere else.
+   A name tag, not a lock. The site is static with no server, so the
+   check runs in the browser and the browser can be read. The hash below
+   stops one kid reading another kid's code over a shoulder or out of the
+   file. It stops nothing else.
 
    To change one: open the site, open the browser console, and run
        Auth.hash('newword')
-   then paste the result in as `pass`.
+   then paste the result in as `code`.
 
    homework: 'print'  -> show a "Print worksheet" button on each topic
              'device' -> they have a device at home
@@ -34,9 +35,10 @@
 
 window.LEARNERS = {
 
-  luffy: {
-    display: 'Luffy',
-    pass: '7921ecf0',
+  elliot: {
+    name: 'Elliot',
+    nickname: 'Luffy',
+    code: '7921ecf0',
     levels: ['AU-7'],
     subjects: ['maths'],
     homework: 'none',
@@ -48,9 +50,10 @@ window.LEARNERS = {
     ]
   },
 
-  cr7: {
-    display: 'CR7',
-    pass: 'dbd979bb',
+  honitalo: {
+    name: 'Honitalo',
+    nickname: 'CR7',
+    code: 'dbd979bb',
     levels: ['SI-6'],
     subjects: ['maths', 'english', 'science', 'health', 'social-studies', 'history'],
     homework: 'print',
@@ -66,9 +69,10 @@ window.LEARNERS = {
     ]
   },
 
-  moana: {
-    display: 'Moana',
-    pass: '7be7012e',
+  letisha: {
+    name: 'Letisha',
+    nickname: 'Moana',
+    code: '7be7012e',
     levels: ['SI-7'],
     subjects: ['maths', 'english', 'science', 'health', 'social-studies', 'history', 'agriculture'],
     homework: 'print',
@@ -83,9 +87,10 @@ window.LEARNERS = {
     ]
   },
 
-  hinata: {
-    display: 'Hinata',
-    pass: '32c0d458',
+  jordesh: {
+    name: 'Jordesh',
+    nickname: 'Hinata',
+    code: '32c0d458',
     levels: ['SI-9'],
     subjects: ['maths', 'english', 'science', 'social-studies'],
     homework: 'device',
@@ -98,9 +103,10 @@ window.LEARNERS = {
     ]
   },
 
-  rewa: {
-    display: 'Rewa',
-    pass: '76553a1b',
+  yvonne: {
+    name: 'Yvonne',
+    nickname: 'Rewa',
+    code: '76553a1b',
     levels: ['SI-10'],
     subjects: ['maths', 'english', 'science', 'social-studies'],
     homework: 'device',
