@@ -38,13 +38,13 @@ var LEARNERS_SOURCE = {
 
   honitalo: {
     name: 'Honitalo',
-    password: 'kaliki',
+    password: 'avengers',
     record: { levels: ['SI-6'], subjects: [], homework: 'print', units: [] }
   },
 
   letisha: {
     name: 'Letisha',
-    password: 'rainbow',
+    password: 'moana',
     record: { levels: ['SI-7'], subjects: [], homework: 'print', units: [] }
   },
 
@@ -56,7 +56,7 @@ var LEARNERS_SOURCE = {
 
   yvonne: {
     name: 'Yvonne',
-    password: 'chinatown',
+    password: 'riverside',
     record: { levels: ['SI-10'], subjects: [], homework: 'device', units: [] }
   }
 

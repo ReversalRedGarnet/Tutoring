@@ -33,18 +33,18 @@ window.LEARNERS = {
 
   honitalo: {
     name: 'Honitalo',
-    verify: '08fea8aaf711c054cf5f612b27a92a5030a56399d8638fcbda4ed7e02e491d76',
+    verify: '0e50a78c70c6b298c11e0cfabbc90ba4e5e334d9c9bfa2a1d8e82cdc1dd05858',
     data:
-      'Noi7ZaUuTzVB9ElJ+YntXI1t4oMjHUPn1sapIQ5M/9y0LoKD1ksesgM+KMFBfcZA' +
-      'Aia8b1UQ6zdVMasEtaYtxMo5wYfxyq0='
+      'GTRn3a7fEdnLGDYpibgRz9s/GRGo++cdK7ua6szgFz8oEALDxpmDr6Ck5/7F8nP3' +
+      'HQcS4hz7T0IqcHT1gT/xi6VCy5TJPbo='
   },
 
   letisha: {
     name: 'Letisha',
-    verify: '9a825131211e570188fecdd9f793a5cf1807a5bd590698f65216ab9b05c26951',
+    verify: 'c39c97f51e881371b564e2c30fbfd375e8f168d1788b0036d10641234a483390',
     data:
-      '4YuGMSZ5ZXtI1HxUiZlTvX1WcjCtPBPaKZPkF3fgLah4VLjUn0JKhwEjMWwzWZ8V' +
-      'XJiyY2Zk0GaJAtOZtvWgjbJlHjHiXoc='
+      'ql2YFsNkxXHLBXVVkFZ5PUrpfEjHB8vyGVo4AMGH9DgqFiXfLjonDS4FNeJKlOTK' +
+      'jL9zJNceu1ks9/IyCoJNvGsYPrRbNJU='
   },
 
   jordesh: {
@@ -57,10 +57,10 @@ window.LEARNERS = {
 
   yvonne: {
     name: 'Yvonne',
-    verify: '9ae7903c46d8f9f81848d94ef52d652cd593000af59bff64a3ca8c1d602ef2bf',
+    verify: '4556381df4563bf240ada0ceb92b8eaa17c9aeefc534ab607e804bce5c90a6ba',
     data:
-      'IGm+kMW620cbpKRkXGL5nvBv3PN9sgVSmU2AzzINvXNT/5MeUQrqfLPK4SK1Xo68' +
-      'aJQ42knx1Vhsnssoy8993BBmCzwGRzBf1w=='
+      'ie4vIbr5cCjT6zEykSnBMuDpeoEVVX+43Emy0omtcqzcT6pE3XSy1XIl09pO/JpX' +
+      'OU0ZZ6qCFN+GzlgFLDRqYGoEjR0DdUr/bA=='
   }
 
 };
