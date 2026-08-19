@@ -7,9 +7,13 @@
 
    The site never loads this file.
 
-   Only Elliot has content so far. The others log in fine and see an
-   empty list — their clusters get built when a parent or teacher flags
-   something specific.
+   `units` lists unit ids, in the order the learner should meet them.
+   The topics inside each unit are defined in js/data/units.js, not
+   here — so adding a topic to a unit does not mean re-encrypting
+   anybody.
+
+   Only Fractions has content so far. The other units show on the
+   dashboard as "Coming soon".
    ------------------------------------------------------------------ */
 
 var LEARNERS_SOURCE = {
@@ -21,24 +25,13 @@ var LEARNERS_SOURCE = {
       levels: ['AU-7'],
       subjects: ['maths'],
       homework: 'none',
-      queue: [
-        'fr-01-what-is',
-        'fr-02-of-a-set',
-        'fr-03-why',
-        'fr-04-representing',
-        'fr-05-types',
-        'fr-06-like-unlike',
-        'fr-07-equivalent',
-        'fr-08-simplifying',
-        'fr-09-comparing',
-        'fr-10-converting',
-        'fr-11-add-like',
-        'fr-12-add-unlike',
-        'fr-13-add-mixed',
-        'fr-14-multiplying',
-        'fr-15-dividing',
-        'fr-16-word-problems',
-        'fr-17-review'
+      units: [
+        'fractions',
+        'decimals',
+        'percentages',
+        'perimeter',
+        'basic-area',
+        'probability'
       ]
     }
   },
@@ -46,25 +39,25 @@ var LEARNERS_SOURCE = {
   honitalo: {
     name: 'Honitalo',
     password: 'kaliki',
-    record: { levels: ['SI-6'], subjects: [], homework: 'print', queue: [] }
+    record: { levels: ['SI-6'], subjects: [], homework: 'print', units: [] }
   },
 
   letisha: {
     name: 'Letisha',
     password: 'rainbow',
-    record: { levels: ['SI-7'], subjects: [], homework: 'print', queue: [] }
+    record: { levels: ['SI-7'], subjects: [], homework: 'print', units: [] }
   },
 
   jordesh: {
     name: 'Jordesh',
     password: 'florence',
-    record: { levels: ['SI-9'], subjects: [], homework: 'device', queue: [] }
+    record: { levels: ['SI-9'], subjects: [], homework: 'device', units: [] }
   },
 
   yvonne: {
     name: 'Yvonne',
     password: 'chinatown',
-    record: { levels: ['SI-10'], subjects: [], homework: 'device', queue: [] }
+    record: { levels: ['SI-10'], subjects: [], homework: 'device', units: [] }
   }
 
 };

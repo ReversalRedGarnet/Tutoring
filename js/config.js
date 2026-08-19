@@ -12,6 +12,7 @@ window.CONFIG = {
      while the repo is private and a spam magnet if it ever is not. */
   tutorEmail: 'REPLACE-ME@example.com',
 
-  /* How many topic cards show before "Show more". */
-  topicsVisible: 4
+  /* How many unit cards show before "Show more". Elliot has six, so
+     all of them fit — drop this to 4 if a learner ever has more. */
+  unitsVisible: 6
 };

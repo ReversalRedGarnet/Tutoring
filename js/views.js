@@ -83,68 +83,71 @@ var Views = (function () {
            '</section>';
   }
 
-  /* --- topic cards ------------------------------------------- */
-  function topicsPanel(slug, queue) {
-    /* Start the row at whatever they are up to, not at topic 1. Someone
-       on topic 12 does not need to look at topic 1 every time. Finished
-       earlier topics rotate to the end, still reachable via Show more. */
-    var start = queue.length;
-    for (var i = 0; i < queue.length; i++) {
-      if (!Store.isDone(slug, queue[i].id)) { start = i; break; }
-    }
-    if (start >= queue.length) start = 0;
+  /* --- unit cards -------------------------------------------- */
+  function unitsPanel(slug, units) {
+    var visible = (window.CONFIG && CONFIG.unitsVisible) || 6;
+    var clipped = units.length > visible;
 
-    var ordered = queue.slice(start).concat(queue.slice(0, start));
+    var cards = units.map(function (u, pos) {
+      var ready = Units.isReady(u);
+      var hidden = clipped && pos >= visible ? ' is-hidden' : '';
 
-    var visible = (window.CONFIG && CONFIG.topicsVisible) || 4;
-    var clipped = ordered.length > visible;
+      if (!ready) {
+        /* Not a link. A card that opens an empty page is worse than a
+           card that plainly says it is not ready. */
+        return '<div class="ucard is-soon' + hidden + '">' +
+                 '<span class="ucard-title">' + esc(u.title) + '</span>' +
+                 '<span class="ucard-blurb">' + esc(u.blurb || '') + '</span>' +
+                 '<span class="ucard-state">Coming soon</span>' +
+               '</div>';
+      }
 
-    var cards = ordered.map(function (t, pos) {
-      var done = Store.isDone(slug, t.id);
-      var isNext = pos === 0 && !done;
-      var number = queue.indexOf(t) + 1;
+      var p = Units.progress(slug, u.id);
+      var state = p.finished ? 'All ' + p.total + ' done'
+                : p.started  ? p.done + ' of ' + p.total + ' done'
+                             : p.total + ' topics';
 
-      return '<a class="tcard' +
-               (done ? ' is-done' : '') +
-               (isNext ? ' is-next' : '') +
-               (clipped && pos >= visible ? ' is-hidden' : '') + '"' +
-               ' href="#/t/' + esc(t.id) + '">' +
-               '<span class="tcard-num">' + number + '</span>' +
-               '<span class="tcard-title">' + esc(t.title) + '</span>' +
-               '<span class="tcard-state">' +
-                 (isNext ? 'Next' : (done ? 'Done' : '')) +
-               '</span>' +
+      return '<a class="ucard' + (p.finished ? ' is-done' : '') + hidden + '"' +
+               ' href="#/u/' + esc(u.id) + '">' +
+               '<span class="ucard-title">' + esc(u.title) + '</span>' +
+               '<span class="ucard-blurb">' + esc(u.blurb || '') + '</span>' +
+               '<span class="ucard-state">' + esc(state) + '</span>' +
              '</a>';
     }).join('');
-
-    var body = '<div class="tgrid">' + cards + '</div>';
 
     var foot = clipped
       ? '<button class="linkbtn" data-act="showmore">Show more</button>'
       : '';
 
-    return panel('Topics', body, foot);
+    return panel('Topics', '<div class="ugrid">' + cards + '</div>', foot);
   }
 
   /* --- where they are, and when ------------------------------ */
-  function progressPanel(slug, queue) {
+  function progressPanel(slug, units) {
     var signs = Store.signIns(slug);
     var last = Store.lastDone(slug);
     var lastTopic = last ? Topics.get(last.id) : null;
+    var lastUnit = last ? Units.of(last.id) : null;
 
-    var pos = 0;
-    for (var i = 0; i < queue.length; i++) {
-      if (!Store.isDone(slug, queue[i].id)) { pos = i; break; }
-      if (i === queue.length - 1) pos = queue.length;
+    /* "Where you are" points at the first unit with anything left. */
+    var whereBig = 'Nothing started yet';
+    var whereSmall = 'Open a topic to begin';
+
+    for (var i = 0; i < units.length; i++) {
+      if (!Units.isReady(units[i])) continue;
+      var p = Units.progress(slug, units[i].id);
+      if (p.finished) continue;
+      whereBig = units[i].title;
+      whereSmall = 'Topic ' + (p.nextIndex + 1) + ' of ' + p.total +
+                   ' — ' + Topics.get(p.nextId).title;
+      break;
     }
 
-    var whereBig, whereSmall;
-    if (pos >= queue.length) {
-      whereBig = 'All ' + queue.length + ' done';
-      whereSmall = 'Nothing left on the list';
-    } else {
-      whereBig = 'Topic ' + (pos + 1) + ' of ' + queue.length;
-      whereSmall = queue[pos].title;
+    if (units.length && units.filter(Units.isReady).every(function (u) {
+      return Units.progress(slug, u.id).finished;
+    })) {
+      whereBig = 'All done';
+      whereSmall = 'Nothing left on your list';
     }
 
     var body = '<div class="pgrid">' +
@@ -162,7 +165,8 @@ var Views = (function () {
         '<span class="pcell-big">' +
           esc(lastTopic ? lastTopic.title : 'Not started yet') + '</span>' +
         '<span class="pcell-small">' +
-          esc(last ? (fmtDate(last.at) || '') : 'Your first topic is waiting') + '</span>' +
+          esc(last ? ((lastUnit ? lastUnit.title + ' — ' : '') + (fmtDate(last.at) || ''))
+                   : 'Your first topic is waiting') + '</span>' +
       '</div>' +
 
       '<div class="pcell">' +
@@ -192,26 +196,83 @@ var Views = (function () {
     return panel('Ask for something', body);
   }
 
-  /* --- the dashboard itself ---------------------------------- */
+  /* --- the dashboard ----------------------------------------- */
   function learner(slug) {
     var L = Auth.record();
     if (!L) return notFound();
 
-    var queue = (L.queue || []).map(Topics.get).filter(Boolean);
+    var units = Units.forLearner(L);
 
     var html = '<p class="eyebrow">' + esc((L.levels || []).join(', ')) + '</p>' +
                '<h1>Hello ' + esc(Auth.nameOf(slug)) + '</h1>';
 
-    if (!queue.length) {
+    if (!units.length) {
       html += '<p class="muted">Nothing is on your list yet. That is not a mistake — ' +
               'it just means the next thing is still being written.</p>';
       html += suggestPanel(slug);
       return html;
     }
 
-    html += topicsPanel(slug, queue);
-    html += progressPanel(slug, queue);
+    html += unitsPanel(slug, units);
+    html += progressPanel(slug, units);
     html += suggestPanel(slug);
+
+    return html;
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Unit page — the subtopics, top to bottom                     */
+  /* ---------------------------------------------------------- */
+  function unit(unitId, slug) {
+    var u = Units.get(unitId);
+    if (!u) return notFound();
+
+    if (!Units.isReady(u)) {
+      return '<p class="eyebrow">Unit</p><h1>' + esc(u.title) + '</h1>' +
+             '<p class="muted">This one has not been written yet.</p>' +
+             '<p><a href="#/k/' + esc(slug || '') + '">Back to your dashboard</a></p>';
+    }
+
+    var p = Units.progress(slug, u.id);
+
+    var html = '<p class="eyebrow"><a href="#/k/' + esc(slug || '') + '">Dashboard</a></p>' +
+               '<h1>' + esc(u.title) + '</h1>' +
+               '<p class="muted">' + esc(u.blurb || '') + '</p>';
+
+    html += '<p class="unit-pos">' +
+              (p.finished
+                ? 'All ' + p.total + ' finished'
+                : 'Topic ' + (p.nextIndex + 1) + ' of ' + p.total) +
+            '</p>';
+
+    if (!p.finished) {
+      var nextT = Topics.get(p.nextId);
+      html += '<div class="btnrow" style="margin-bottom:1.75rem">' +
+                '<a class="btn solid" href="#/t/' + esc(p.nextId) + '">' +
+                  (p.started ? 'Carry on' : 'Start') + ': ' + esc(nextT.title) +
+                '</a>' +
+              '</div>';
+    }
+
+    html += '<ol class="ulist">';
+    (u.topics || []).forEach(function (id, i) {
+      var t = Topics.get(id);
+      if (!t) return;
+      var done = slug && Store.isDone(slug, id);
+      var isNext = i === p.nextIndex;
+
+      html += '<li class="urow' + (done ? ' is-done' : '') + (isNext ? ' is-next' : '') + '">' +
+                '<span class="urow-num">' + (i + 1) + '</span>' +
+                '<a class="urow-main" href="#/t/' + esc(id) + '">' +
+                  '<span class="urow-title">' + esc(t.title) + '</span>' +
+                  '<span class="urow-idea">' + esc(t.one_idea) + '</span>' +
+                '</a>' +
+                '<span class="urow-state">' +
+                  (isNext ? 'Next' : (done ? 'Done' : '')) +
+                '</span>' +
+              '</li>';
+    });
+    html += '</ol>';
 
     return html;
   }
@@ -303,15 +364,16 @@ var Views = (function () {
     return h;
   }
 
-  /* Previous / next within the learner's own sequence. */
-  function pager(id, slug) {
-    var L = Auth.record();
-    if (!L || !L.queue) return '';
-    var i = L.queue.indexOf(id);
+  /* Previous / next within the unit the topic belongs to. */
+  function pager(id) {
+    var u = Units.of(id);
+    if (!u) return '';
+    var ids = u.topics || [];
+    var i = ids.indexOf(id);
     if (i < 0) return '';
 
-    var prev = i > 0 ? Topics.get(L.queue[i - 1]) : null;
-    var next = i < L.queue.length - 1 ? Topics.get(L.queue[i + 1]) : null;
+    var prev = i > 0 ? Topics.get(ids[i - 1]) : null;
+    var next = i < ids.length - 1 ? Topics.get(ids[i + 1]) : null;
 
     var h = '<nav class="pager noprint">';
     h += prev
@@ -319,7 +381,7 @@ var Views = (function () {
           '<span class="pager-dir">Previous</span>' +
           '<span class="pager-name">' + esc(prev.title) + '</span></a>'
       : '<span></span>';
-    h += '<span class="pager-count">' + (i + 1) + ' of ' + L.queue.length + '</span>';
+    h += '<span class="pager-count">' + (i + 1) + ' of ' + ids.length + '</span>';
     h += next
       ? '<a class="pager-next" href="#/t/' + esc(next.id) + '">' +
           '<span class="pager-dir">Next</span>' +
@@ -354,8 +416,13 @@ var Views = (function () {
       html += '</ul>';
     }
 
-    html += '<p class="eyebrow">' + esc(subjectName(t.subject)) + ' &middot; ' +
-            esc((t.levels || []).join(', ')) + '</p>';
+    var parent = Units.of(id);
+    html += '<p class="eyebrow">' +
+              (parent
+                ? '<a href="#/u/' + esc(parent.id) + '">' + esc(parent.title) + '</a> &middot; '
+                : '') +
+              esc((t.levels || []).join(', ')) +
+            '</p>';
     html += '<h1>' + esc(t.title) + '</h1>';
 
     html += '<div class="oneidea"><p>' + esc(t.one_idea) + '</p></div>';
@@ -419,7 +486,9 @@ var Views = (function () {
       html += done
         ? '<button class="btn quiet" data-act="undone" data-topic="' + esc(id) + '">Put this back on the list</button>'
         : '<button class="btn solid" data-act="done" data-topic="' + esc(id) + '">Finished this one</button>';
-      html += '<a class="btn" href="#/k/' + esc(slug) + '">Back to the list</a>';
+      html += parent
+        ? '<a class="btn" href="#/u/' + esc(parent.id) + '">Back to ' + esc(parent.title) + '</a>'
+        : '<a class="btn" href="#/k/' + esc(slug) + '">Back to the list</a>';
 
       var L = Auth.record();
       if (L && L.homework === 'print') {
@@ -430,7 +499,7 @@ var Views = (function () {
     }
     html += '</div>';
 
-    html += pager(id, slug);
+    html += pager(id);
 
     return html;
   }
@@ -473,6 +542,6 @@ var Views = (function () {
     return html;
   }
 
-  return { login: login, learner: learner, topic: topic, map: map,
+  return { login: login, learner: learner, unit: unit, topic: topic, map: map,
            notFound: notFound, subjectName: subjectName };
 })();

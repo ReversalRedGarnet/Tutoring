@@ -761,57 +761,129 @@ a { color: var(--teal); }
 
 .linkbtn:hover { text-decoration: underline; }
 
-/* --- topic cards --- */
-.tgrid {
+/* --- unit cards --- */
+.ugrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
   gap: .7rem;
 }
 
-/* Cards past the visible count are marked in JS, not selected by CSS —
-   a substring match on an inline order value would also catch 10-16. */
-.tcard.is-hidden { display: none; }
-
-.tcard {
+.ucard {
   display: flex;
   flex-direction: column;
-  gap: .3rem;
-  min-height: 6.5rem;
-  padding: .7rem .8rem;
+  gap: .35rem;
+  min-height: 8rem;
+  padding: .85rem .9rem;
   border: 1px solid var(--line);
   background: var(--paper);
   text-decoration: none;
   color: var(--ink);
 }
 
-.tcard:hover { border-color: var(--teal); }
+a.ucard:hover { border-color: var(--teal); }
 
-.tcard-num {
-  font-family: var(--font-mono);
-  font-size: .7rem;
+.ucard-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.ucard-blurb {
+  flex: 1 1 auto;
+  font-size: .85rem;
+  line-height: 1.45;
   color: var(--ink-soft);
 }
 
-.tcard-title {
+.ucard-state {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.ucard.is-soon {
+  border-style: dashed;
+  background: transparent;
+}
+
+.ucard.is-soon .ucard-title { color: var(--ink-soft); }
+.ucard.is-soon .ucard-state { color: var(--ink-soft); }
+
+.ucard.is-done .ucard-state { color: var(--ink-soft); }
+
+.ucard.is-hidden { display: none; }
+
+/* --- unit page: the subtopic list --- */
+.unit-pos {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--teal);
+  margin: 0 0 1rem;
+}
+
+.ulist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.urow {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  padding: .8rem .2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.urow-num {
+  flex: 0 0 1.6rem;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--ink-soft);
+  padding-top: .15rem;
+}
+
+.urow-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-decoration: none;
+  display: block;
+}
+
+.urow-title {
+  display: block;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: .95rem;
-  line-height: 1.25;
-  flex: 1 1 auto;
+  font-size: 1rem;
+  color: var(--ink);
 }
 
-.tcard-state {
+.urow-main:hover .urow-title { color: var(--teal); }
+
+.urow-idea {
+  display: block;
+  font-size: .87rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.urow-state {
+  flex: 0 0 auto;
   font-family: var(--font-mono);
   font-size: .66rem;
-  letter-spacing: .14em;
+  letter-spacing: .13em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  min-height: 1em;
+  padding-top: .2rem;
 }
 
-.tcard.is-next { border-color: var(--teal); border-left-width: 3px; }
-.tcard.is-next .tcard-state { color: var(--teal); }
-.tcard.is-done .tcard-title { color: var(--ink-soft); }
+.urow.is-next { border-left: 3px solid var(--teal); padding-left: .6rem; }
+.urow.is-next .urow-state { color: var(--teal); }
+.urow.is-done .urow-title { color: var(--ink-soft); }
 
 /* --- progress --- */
 .pgrid {

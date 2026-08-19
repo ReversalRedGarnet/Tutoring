@@ -282,3 +282,72 @@ var Topics = (function () {
     }
   };
 })();
+
+
+/* ------------------------------------------------------------------
+   Units — the course layer over window.UNITS
+   ------------------------------------------------------------------ */
+
+var Units = (function () {
+
+  function all() { return window.UNITS || []; }
+
+  function get(id) {
+    var found = null;
+    all().forEach(function (u) { if (u.id === id) found = u; });
+    return found;
+  }
+
+  /* Which unit a topic belongs to. Used for breadcrumbs and the pager. */
+  function of(topicId) {
+    var found = null;
+    all().forEach(function (u) {
+      if (!found && (u.topics || []).indexOf(topicId) >= 0) found = u;
+    });
+    return found;
+  }
+
+  function isReady(u) { return !!(u && u.topics && u.topics.length); }
+
+  /* Position, never performance: how many are finished, and which one
+     is next. No scores are derived from this anywhere. */
+  function progress(slug, unitId) {
+    var u = get(unitId);
+    if (!u) return null;
+
+    var ids = u.topics || [];
+    var done = 0;
+    var nextIndex = -1;
+
+    ids.forEach(function (id, i) {
+      if (Store.isDone(slug, id)) {
+        done++;
+      } else if (nextIndex < 0) {
+        nextIndex = i;
+      }
+    });
+
+    return {
+      total: ids.length,
+      done: done,
+      nextIndex: nextIndex,                                  /* -1 = finished */
+      nextId: nextIndex >= 0 ? ids[nextIndex] : null,
+      started: done > 0,
+      finished: ids.length > 0 && done === ids.length
+    };
+  }
+
+  return {
+    all: all,
+    get: get,
+    of: of,
+    isReady: isReady,
+    progress: progress,
+
+    /* The learner's own units, in their own order, skipping any id that
+       no longer exists in the library. */
+    forLearner: function (record) {
+      return ((record && record.units) || []).map(get).filter(Boolean);
+    }
+  };
+})();

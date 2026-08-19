@@ -26,7 +26,8 @@ index.html              shell, header and footer
 tools/encrypt.html      regenerates learners.js (tutor only)
 private/                plaintext learner records — gitignored
 css/style.css           all styling
-js/data/topics.*.js     the library, one file per block
+js/data/units.js        the unit list and what topics each one holds
+js/data/topics.*.js     the topic library, one file per block
 js/data/learners.js     slug -> ordered list of topic ids
 js/config.js            tutor email + card count — edit this one
 js/crypto.js            SHA-256, key derivation, record cipher
@@ -110,15 +111,38 @@ rather than failing silently.
 
 ---
 
+## Three levels
+
+```
+learner  ->  units          js/data/learners.js  (encrypted)
+unit     ->  topics         js/data/units.js
+topic    ->  the lesson     js/data/topics.*.js
+```
+
+A learner's record lists **unit ids only**. The topics inside a unit live
+in `units.js`, so adding or reordering topics within a unit does not mean
+re-encrypting anybody. That separation is worth keeping.
+
+Routes: `#/k/<slug>` dashboard, `#/u/<unit>` unit page, `#/t/<topic>` the
+lesson.
+
+A unit with an empty `topics` list renders as a dashed "Coming soon" card
+and is deliberately **not** a link — a card that opens an empty page is
+worse than one that says plainly it is not ready.
+
+---
+
 ## The dashboard
 
 `#/k/<slug>` shows three panels:
 
-- **Topics** — cards starting at whatever they are up to, not at topic 1.
-  Finished topics rotate to the end and stay reachable behind Show more.
-- **Progress** — last sign-in, last topic finished, and position in the
-  sequence. Position, not performance: "Topic 7 of 17", never a score, a
-  percentage or a streak. That line is deliberate and worth holding.
+- **Topics** — one card per unit, with how many of its topics are done.
+  Individual lessons are not on this screen at all; they live one level
+  down.
+- **Progress** — last sign-in, last topic finished, and where they are up
+  to. Position, not performance: "Fractions — topic 7 of 17", never a
+  score, a percentage or a streak. That line is deliberate and worth
+  holding.
 - **Ask for something** — free text that opens a prefilled email. The site
   is static, so there is no server to post to. The text is also saved
   locally as a draft as they type.
@@ -132,6 +156,9 @@ will not see it.
 ---
 
 ## Content
+
+Elliot has six units: Fractions, Decimals, Percentages, Perimeter, Basic
+area, Probability. Only Fractions is written.
 
 `js/data/topics.fractions.js` is a complete 17-topic sequence for AU
 Year 7, following Elliot's teaching order from introduction through to
@@ -155,7 +182,7 @@ When a cluster arrives, add the confusing topics **and** the one or two
 topics underneath them, even if nobody asked for those. That is where the
 diagnosis usually lands.
 
-The other four learners have empty queues on purpose. They log in fine and
+The other four learners have empty unit lists on purpose. They log in fine and
 see "Nothing here yet", which is a different message from "All done".
 
 ### Section shape

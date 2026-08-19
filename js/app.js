@@ -49,6 +49,14 @@
       html = Views.learner(slug);
       document.title = Auth.nameOf(slug) + ' — Study';
 
+    } else if (parts[0] === 'u' && parts[1]) {
+      if (!current.slug) current.slug = recallSlug();
+      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
+      if (!current.slug) { location.hash = '#/'; return; }
+      html = Views.unit(parts[1], current.slug);
+      var u = Units.get(parts[1]);
+      document.title = (u ? u.title : 'Unit') + ' — Study';
+
     } else if (parts[0] === 't' && parts[1]) {
       if (!current.slug) current.slug = recallSlug();
       if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
