@@ -1,0 +1,603 @@
+/* ============================================================
+   Study — dark teal
+   ============================================================ */
+:root {
+  /* Deep enough to be restful across an hour, with a single bright
+     teal doing all the pointing. Amber appears only on hints and
+     retries — never on anything that reads as a mark. */
+  --paper:      #071A20;   /* page */
+  --deep:       #041217;   /* header, deepest surface */
+  --card:       #0C2830;   /* raised panels */
+  --wash:       #10333D;   /* quiet fills */
+  --line:       #1D4855;   /* borders */
+
+  --ink:        #E4F1F0;
+  --ink-soft:   #8FB0B4;
+
+  --teal:       #38C6B4;   /* the one accent */
+  --teal-d:     #21998C;
+  --amber:      #E5A84C;
+  --amber-wash: #2A2317;
+
+  /* Circuit traces for the header and footer. Inline data URI, so no
+     extra request and nothing to 404. */
+  --trace: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80' viewBox='0 0 160 80'%3E%3Cg fill='none' stroke='%2338C6B4' stroke-width='1.4'%3E%3Cpath d='M0 16h34l12 12h38'/%3E%3Cpath d='M84 28v22h34l12-12h30'/%3E%3Cpath d='M0 64h26l10-10h30'/%3E%3Cpath d='M110 0v12l10 10h40'/%3E%3Cpath d='M46 80v-14h24'/%3E%3C/g%3E%3Cg fill='%2338C6B4'%3E%3Crect x='31.5' y='13.5' width='5' height='5'/%3E%3Crect x='81.5' y='25.5' width='5' height='5'/%3E%3Crect x='115.5' y='35.5' width='5' height='5'/%3E%3Crect x='23.5' y='61.5' width='5' height='5'/%3E%3Crect x='67.5' y='63.5' width='5' height='5'/%3E%3C/g%3E%3C/svg%3E");
+
+  --rail-w: 3px;
+  --radius: 0;
+  --measure: 42rem;
+
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+
+  /* Column layout so the stage absorbs leftover height. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.12;
+  margin: 0 0 .5rem;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+
+p { margin: 0 0 1rem; }
+
+a { color: var(--teal); }
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ============================================================
+   Header
+   ============================================================ */
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: .9rem 1.25rem 1rem;
+  background: var(--deep);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* Traces drift in from the right and fade out before the wordmark. */
+.topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--trace);
+  background-repeat: repeat;
+  background-size: 160px 80px;
+  opacity: .42;
+  -webkit-mask-image: linear-gradient(90deg, transparent 8%, #000 55%);
+  mask-image: linear-gradient(90deg, transparent 8%, #000 55%);
+  pointer-events: none;
+}
+
+.brand, .topnav { position: relative; z-index: 1; }
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.brand-mark {
+  width: 1.55rem;
+  height: 1.55rem;
+  color: var(--teal);
+  flex: none;
+}
+
+.brand-text {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: .04em;
+}
+
+.brand-caret {
+  color: var(--teal);
+  animation: blink 1.2s steps(1) infinite;
+}
+
+@keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+.topnav {
+  display: flex;
+  gap: 1.1rem;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+}
+
+.topnav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.topnav a:hover { color: var(--teal); }
+
+/* Hairline under the header, brightest under the wordmark. */
+.topbar-rule {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--teal), var(--line) 45%, transparent);
+  opacity: .8;
+}
+
+/* ============================================================
+   Stage — short pages centre, long pages grow and scroll
+   ============================================================ */
+.stage {
+  flex: 1 1 auto;
+  display: flex;
+  width: 100%;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--measure);
+  margin: auto;
+  padding: 2.5rem 1.25rem 3rem;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.foot {
+  position: relative;
+  background: var(--deep);
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: .9rem;
+  padding: 2.25rem 1.25rem 1.5rem;
+}
+
+.foot-trace {
+  position: absolute;
+  inset: 0;
+  background-image: var(--trace);
+  background-repeat: repeat;
+  background-size: 160px 80px;
+  opacity: .34;
+  -webkit-mask-image: linear-gradient(180deg, #000 15%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000 15%, transparent 92%);
+  pointer-events: none;
+}
+
+.foot-inner {
+  position: relative;
+  z-index: 1;
+  max-width: var(--measure);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.foot-brand { flex: 1 1 12rem; }
+
+.foot-mark {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--teal);
+  opacity: .85;
+}
+
+.foot-tag {
+  font-family: var(--font-display);
+  color: var(--ink);
+  margin: .4rem 0 0;
+  font-size: 1rem;
+}
+
+.foot-cols {
+  flex: 2 1 20rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.foot-col {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  min-width: 7.5rem;
+}
+
+.foot-head {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 .2rem;
+}
+
+.foot-col a { color: var(--ink-soft); text-decoration: none; }
+.foot-col a:hover { color: var(--teal); }
+
+.foot-soon { color: #4E717A; }
+
+.foot-note {
+  position: relative;
+  z-index: 1;
+  max-width: var(--measure);
+  margin: 2rem auto 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: .8rem;
+  text-align: center;
+}
+
+/* ============================================================
+   Shared pieces
+   ============================================================ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 .35rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.btn {
+  font: inherit;
+  font-size: .95rem;
+  padding: .6rem 1.15rem;
+  border-radius: 0;
+  border: 1.5px solid var(--teal);
+  letter-spacing: .01em;
+  background: transparent;
+  color: var(--teal);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:hover { background: var(--wash); }
+
+.btn.solid {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--deep);
+  font-weight: 700;
+}
+
+.btn.solid:hover { background: var(--teal-d); border-color: var(--teal-d); }
+
+.btn.quiet {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.btn.quiet:hover { color: var(--ink); }
+
+.btn[disabled] { opacity: .55; cursor: default; }
+
+.btnrow {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-top: .75rem;
+}
+
+.muted { color: var(--ink-soft); }
+
+.stub-note {
+  font-size: .85rem;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--line);
+  padding-left: .75rem;
+}
+
+.hidden { display: none; }
+
+/* ============================================================
+   Login
+   ============================================================ */
+.loginbox {
+  max-width: 20rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.loginbox h1 { margin-bottom: 1.75rem; }
+
+.field {
+  text-align: left;
+  margin: 0 0 1rem;
+}
+
+.field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: .35rem;
+}
+
+.textfield {
+  font: inherit;
+  width: 100%;
+  padding: .65rem .75rem;
+  border: 1.5px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.textfield:focus { border-color: var(--teal); }
+
+.textfield.select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--teal) 50%),
+    linear-gradient(135deg, var(--teal) 50%, transparent 50%);
+  background-position: right 1.05rem center, right .75rem center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+.textfield.select option { background: var(--card); color: var(--ink); }
+
+.textfield.code {
+  font-family: var(--font-mono);
+  letter-spacing: .18em;
+}
+
+.loginbox .btnrow { justify-content: center; }
+.loginbox .btn { min-width: 9rem; }
+
+.gate-again {
+  margin: .6rem 0 0;
+  font-size: .9rem;
+  color: var(--amber);
+}
+
+/* ============================================================
+   One idea box
+   ============================================================ */
+.oneidea {
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  margin: 0 0 1.5rem;
+}
+
+.oneidea p {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* ============================================================
+   Ladder rail
+   ============================================================ */
+.ladder {
+  list-style: none;
+  margin: 0 0 1.75rem;
+  padding: 0 0 0 1.5rem;
+  border-left: var(--rail-w) solid var(--line);
+}
+
+.ladder li {
+  position: relative;
+  padding: .2rem 0;
+  font-size: .92rem;
+  color: var(--ink-soft);
+}
+
+.ladder li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - var(--rail-w));
+  top: .75rem;
+  width: .65rem;
+  height: .65rem;
+  background: var(--paper);
+  border: var(--rail-w) solid var(--line);
+}
+
+.ladder li.done::before { background: var(--teal); border-color: var(--teal); }
+
+.ladder li.here::before {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(229,168,76,.18);
+}
+
+.ladder li.here { color: var(--ink); font-weight: 700; }
+
+.ladder a { color: inherit; }
+
+/* ============================================================
+   Practice items
+   ============================================================ */
+.item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 1rem 1.15rem;
+  margin: 0 0 .9rem;
+}
+
+.item .q {
+  font-size: 1.1rem;
+  margin: 0 0 .5rem;
+}
+
+.item .num {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.scratch {
+  font: inherit;
+  font-family: var(--font-mono);
+  width: 100%;
+  min-height: 3.5rem;
+  padding: .6rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.scratch:focus { border-color: var(--teal); }
+
+.answer {
+  margin-top: .8rem;
+  padding: .8rem 1rem;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.answer .label {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  display: block;
+  margin-bottom: .2rem;
+}
+
+.hintbox {
+  margin-top: .8rem;
+  padding: .8rem 1rem;
+  background: var(--amber-wash);
+  border: 1px solid rgba(229,168,76,.3);
+  border-radius: 0;
+  font-size: .95rem;
+}
+
+/* ============================================================
+   Lists
+   ============================================================ */
+.tlist { list-style: none; margin: 0; padding: 0; }
+
+.tlist li {
+  border-bottom: 1px solid var(--line);
+  padding: .7rem 0;
+  display: flex;
+  gap: .75rem;
+  align-items: baseline;
+}
+
+.tlist li:last-child { border-bottom: 0; }
+
+.tlist a { text-decoration: none; font-weight: 700; }
+
+.tlist a:hover { text-decoration: underline; }
+
+.tlist .meta {
+  margin-left: auto;
+  font-size: .8rem;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.subjblock { margin: 0 0 2rem; }
+
+.depth-1 { padding-left: 1.25rem; }
+.depth-2 { padding-left: 2.5rem; }
+.depth-3 { padding-left: 3.75rem; }
+
+/* ============================================================
+   Print — a plain worksheet on white
+   ============================================================ */
+@media print {
+  .topbar, .foot, .btnrow, .btn, .noprint,
+  .answer, .hintbox, .ladder { display: none !important; }
+
+  body {
+    background: #FFF;
+    color: #000;
+    font-size: 12pt;
+    display: block;
+    min-height: 0;
+  }
+
+  .stage { display: block; }
+  .page { max-width: none; margin: 0; padding: 0; }
+
+  .item, .card {
+    border: 1px solid #999;
+    background: #FFF;
+    break-inside: avoid;
+  }
+
+  .oneidea {
+    background: #FFF;
+    border: 1px solid #999;
+    border-left: 3px solid #333;
+  }
+
+  .oneidea p, .item .q, h1, h2, h3 { color: #000; }
+  .scratch { min-height: 5rem; background: #FFF; border-color: #999; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 30rem) {
+  h1 { font-size: 1.55rem; }
+  .page { padding: 1.75rem 1rem 2.5rem; }
+}
