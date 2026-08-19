@@ -15,11 +15,10 @@ var Store = (function () {
     try {
       var raw = localStorage.getItem(PREFIX + slug);
       if (!raw) return blank();
-      var parsed = JSON.parse(raw);
-      return {
-        done: parsed.done || {},
-        marks: parsed.marks || {}
-      };
+      var parsed = JSON.parse(raw) || {};
+      parsed.done = parsed.done || {};
+      parsed.marks = parsed.marks || {};
+      return parsed;
     } catch (e) {
       return blank();
     }
@@ -73,6 +72,43 @@ var Store = (function () {
 
     getMark: function (slug, key) {
       return read(slug).marks[key] || {};
+    },
+
+    /* Sign-in dates. Called once on a successful login. The dashboard
+       shows the PREVIOUS one, because "you last signed in on" meaning
+       "ten seconds ago" is not information. */
+    recordSignIn: function (slug) {
+      var d = read(slug);
+      d.prevSignIn = d.lastSignIn || null;
+      d.lastSignIn = Date.now();
+      write(slug, d);
+    },
+
+    signIns: function (slug) {
+      var d = read(slug);
+      return { last: d.lastSignIn || null, prev: d.prevSignIn || null };
+    },
+
+    /* The most recently finished topic: { id, at } or null. */
+    lastDone: function (slug) {
+      var done = read(slug).done;
+      var best = null;
+      Object.keys(done).forEach(function (id) {
+        if (!best || done[id] > best.at) best = { id: id, at: done[id] };
+      });
+      return best;
+    },
+
+    /* The suggestion box keeps a draft so a half-typed thought is not
+       lost when they navigate away. */
+    saveDraft: function (slug, text) {
+      var d = read(slug);
+      d.draft = text;
+      write(slug, d);
+    },
+
+    getDraft: function (slug) {
+      return read(slug).draft || '';
     },
 
     reset: function (slug) {

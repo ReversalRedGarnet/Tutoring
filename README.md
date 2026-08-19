@@ -28,6 +28,7 @@ private/                plaintext learner records — gitignored
 css/style.css           all styling
 js/data/topics.*.js     the library, one file per block
 js/data/learners.js     slug -> ordered list of topic ids
+js/config.js            tutor email + card count — edit this one
 js/crypto.js            SHA-256, key derivation, record cipher
 js/store.js             progress, login, session, graph helpers
 js/views.js             renderers, one function per screen
@@ -98,6 +99,35 @@ The passwords are short dictionary words, so anyone willing to spend
 compute will get through, and once a kid logs in their own record is
 decrypted in their own browser as it must be. The private repo is still
 the main protection. This is defence in depth.
+
+---
+
+## Set your email
+
+`js/config.js` has a placeholder `tutorEmail`. Until you change it, the
+suggestion box saves what a learner types but cannot send it, and says so
+rather than failing silently.
+
+---
+
+## The dashboard
+
+`#/k/<slug>` shows three panels:
+
+- **Topics** — cards starting at whatever they are up to, not at topic 1.
+  Finished topics rotate to the end and stay reachable behind Show more.
+- **Progress** — last sign-in, last topic finished, and position in the
+  sequence. Position, not performance: "Topic 7 of 17", never a score, a
+  percentage or a streak. That line is deliberate and worth holding.
+- **Ask for something** — free text that opens a prefilled email. The site
+  is static, so there is no server to post to. The text is also saved
+  locally as a draft as they type.
+
+Two things follow from the email approach. A learner working on their own
+device opens *their* mail client, so the message arrives from their
+address. And nothing is transmitted unless they actually send the email —
+if they type something and close the tab, it sits in their browser and you
+will not see it.
 
 ---
 
@@ -245,6 +275,11 @@ Falls back to the prerequisites of the upcoming topic on a fresh device.
 **"Careful — this is not the same as"** renders `confusable_with`. For the
 learner who invents connections between unrelated topics: name the false
 connection before he makes it.
+
+**No warm-up.** Earlier versions opened each session with three retrieval
+questions from one to three weeks back. That was dropped from the
+dashboard. The `retrieval` items are still in every topic and the helper
+still exists, so it can come back without rewriting content.
 
 **Previous / next** at the foot of every topic, with position in the
 sequence. The order comes from the learner's own queue, so each child gets

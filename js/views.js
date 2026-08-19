@@ -62,75 +62,157 @@ var Views = (function () {
   }
 
   /* ---------------------------------------------------------- */
-  /* Session: warm-up, then today, then the rest of the queue    */
+  /* Dashboard                                                   */
   /* ---------------------------------------------------------- */
+  function fmtDate(ms) {
+    if (!ms) return null;
+    try {
+      return new Date(ms).toLocaleDateString(undefined, {
+        day: 'numeric', month: 'short', year: 'numeric'
+      });
+    } catch (e) {
+      return new Date(ms).toDateString();
+    }
+  }
+
+  function panel(label, body, footer) {
+    return '<section class="panel">' +
+             '<p class="panel-label">' + esc(label) + '</p>' +
+             body +
+             (footer ? '<div class="panel-foot">' + footer + '</div>' : '') +
+           '</section>';
+  }
+
+  /* --- topic cards ------------------------------------------- */
+  function topicsPanel(slug, queue) {
+    /* Start the row at whatever they are up to, not at topic 1. Someone
+       on topic 12 does not need to look at topic 1 every time. Finished
+       earlier topics rotate to the end, still reachable via Show more. */
+    var start = queue.length;
+    for (var i = 0; i < queue.length; i++) {
+      if (!Store.isDone(slug, queue[i].id)) { start = i; break; }
+    }
+    if (start >= queue.length) start = 0;
+
+    var ordered = queue.slice(start).concat(queue.slice(0, start));
+
+    var visible = (window.CONFIG && CONFIG.topicsVisible) || 4;
+    var clipped = ordered.length > visible;
+
+    var cards = ordered.map(function (t, pos) {
+      var done = Store.isDone(slug, t.id);
+      var isNext = pos === 0 && !done;
+      var number = queue.indexOf(t) + 1;
+
+      return '<a class="tcard' +
+               (done ? ' is-done' : '') +
+               (isNext ? ' is-next' : '') +
+               (clipped && pos >= visible ? ' is-hidden' : '') + '"' +
+               ' href="#/t/' + esc(t.id) + '">' +
+               '<span class="tcard-num">' + number + '</span>' +
+               '<span class="tcard-title">' + esc(t.title) + '</span>' +
+               '<span class="tcard-state">' +
+                 (isNext ? 'Next' : (done ? 'Done' : '')) +
+               '</span>' +
+             '</a>';
+    }).join('');
+
+    var body = '<div class="tgrid">' + cards + '</div>';
+
+    var foot = clipped
+      ? '<button class="linkbtn" data-act="showmore">Show more</button>'
+      : '';
+
+    return panel('Topics', body, foot);
+  }
+
+  /* --- where they are, and when ------------------------------ */
+  function progressPanel(slug, queue) {
+    var signs = Store.signIns(slug);
+    var last = Store.lastDone(slug);
+    var lastTopic = last ? Topics.get(last.id) : null;
+
+    var pos = 0;
+    for (var i = 0; i < queue.length; i++) {
+      if (!Store.isDone(slug, queue[i].id)) { pos = i; break; }
+      if (i === queue.length - 1) pos = queue.length;
+    }
+
+    var whereBig, whereSmall;
+    if (pos >= queue.length) {
+      whereBig = 'All ' + queue.length + ' done';
+      whereSmall = 'Nothing left on the list';
+    } else {
+      whereBig = 'Topic ' + (pos + 1) + ' of ' + queue.length;
+      whereSmall = queue[pos].title;
+    }
+
+    var body = '<div class="pgrid">' +
+
+      '<div class="pcell">' +
+        '<span class="pcell-label">You last signed in</span>' +
+        '<span class="pcell-big">' + esc(fmtDate(signs.prev) || 'First time here') + '</span>' +
+        '<span class="pcell-small">' +
+          (signs.prev ? 'Welcome back' : 'Nothing to catch up on') +
+        '</span>' +
+      '</div>' +
+
+      '<div class="pcell">' +
+        '<span class="pcell-label">You last did</span>' +
+        '<span class="pcell-big">' +
+          esc(lastTopic ? lastTopic.title : 'Not started yet') + '</span>' +
+        '<span class="pcell-small">' +
+          esc(last ? (fmtDate(last.at) || '') : 'Your first topic is waiting') + '</span>' +
+      '</div>' +
+
+      '<div class="pcell">' +
+        '<span class="pcell-label">Where you are</span>' +
+        '<span class="pcell-big">' + esc(whereBig) + '</span>' +
+        '<span class="pcell-small">' + esc(whereSmall) + '</span>' +
+      '</div>' +
+
+    '</div>';
+
+    return panel('Progress', body);
+  }
+
+  /* --- suggestion box ---------------------------------------- */
+  function suggestPanel(slug) {
+    var draft = Store.getDraft(slug);
+
+    var body = '<p class="suggest-prompt">Suggest what you would like us to cover next.</p>' +
+               '<textarea id="suggestbox" class="suggestbox" ' +
+                 'placeholder="Anything you want to go over again, or something new"' +
+                 '>' + esc(draft) + '</textarea>' +
+               '<div class="btnrow">' +
+                 '<button class="btn solid" data-act="suggest">Send to my tutor</button>' +
+               '</div>' +
+               '<p class="suggest-note muted" data-role="suggest-note"></p>';
+
+    return panel('Ask for something', body);
+  }
+
+  /* --- the dashboard itself ---------------------------------- */
   function learner(slug) {
     var L = Auth.record();
     if (!L) return notFound();
 
     var queue = (L.queue || []).map(Topics.get).filter(Boolean);
-    var next = null;
-    for (var i = 0; i < queue.length; i++) {
-      if (!Store.isDone(slug, queue[i].id)) { next = queue[i]; break; }
+
+    var html = '<p class="eyebrow">' + esc((L.levels || []).join(', ')) + '</p>' +
+               '<h1>Hello ' + esc(Auth.nameOf(slug)) + '</h1>';
+
+    if (!queue.length) {
+      html += '<p class="muted">Nothing is on your list yet. That is not a mistake — ' +
+              'it just means the next thing is still being written.</p>';
+      html += suggestPanel(slug);
+      return html;
     }
 
-    var html = '<p class="eyebrow">' + esc(Auth.nameOf(slug)) + ' &middot; ' +
-               esc((L.levels || []).join(', ')) + '</p>';
+    html += topicsPanel(slug, queue);
+    html += progressPanel(slug, queue);
+    html += suggestPanel(slug);
 
-    /* --- warm-up --- */
-    var warm = Topics.warmup(slug, next ? next.id : null, 3);
-    if (warm.length) {
-      html += '<h1>Warm-up</h1>' +
-              '<p class="muted">Three things from a while back. Nothing is being marked.</p>';
-      warm.forEach(function (w, i) {
-        html += item({
-          key: 'warm:' + w.from + ':' + i,
-          slug: slug,
-          n: i + 1,
-          q: w.q,
-          a: w.a,
-          hint: null,
-          from: w.title,
-          scratch: false
-        });
-      });
-      html += '<hr style="border:0;border-top:1px solid var(--line);margin:2rem 0">';
-    }
-
-    /* --- today --- */
-    if (next) {
-      html += '<h1>Today</h1>' +
-              '<div class="card">' +
-                '<p class="eyebrow">' + esc(subjectName(next.subject)) + '</p>' +
-                '<h2 style="margin-bottom:.35rem">' + esc(next.title) + '</h2>' +
-                '<p class="muted" style="margin:0">' + esc(next.one_idea) + '</p>' +
-                '<div class="btnrow"><a class="btn solid" href="#/t/' + esc(next.id) + '">Start</a></div>' +
-              '</div>';
-    } else if (!queue.length) {
-      html += '<h1>Nothing here yet</h1>' +
-              '<p class="muted">Your tutor has not put anything on your list. ' +
-              'That is not a mistake — it just means the next thing is still being written.</p>';
-    } else {
-      html += '<h1>All done</h1>' +
-              '<p class="muted">Everything on the list is finished. Pick anything below to go over again.</p>';
-    }
-
-    /* --- rest of the list --- */
-    if (queue.length) {
-      html += '<h2 style="margin-top:2rem">The rest of the list</h2><ul class="tlist">';
-    }
-    queue.forEach(function (t) {
-      var done = Store.isDone(slug, t.id);
-      html += '<li>' +
-                '<a href="#/t/' + esc(t.id) + '">' + esc(t.title) + '</a>' +
-                '<span class="meta">' + esc(subjectName(t.subject)) +
-                  (done ? ' &middot; done' : '') + '</span>' +
-              '</li>';
-    });
-    if (queue.length) {
-      html += '</ul>';
-      html += '<p style="margin-top:2rem"><a href="#/map">See how these topics connect</a></p>';
-    }
     return html;
   }
 

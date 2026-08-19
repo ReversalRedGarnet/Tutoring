@@ -140,11 +140,53 @@
       return;
     }
 
+    if (act === 'showmore') {
+      view.querySelectorAll('.tcard.is-hidden').forEach(function (c) {
+        c.classList.remove('is-hidden');
+      });
+      btn.remove();
+      return;
+    }
+
+    if (act === 'suggest') {
+      sendSuggestion();
+      return;
+    }
+
     if (act === 'print') {
       window.print();
       return;
     }
   });
+
+  /* No server to post to, so this opens a prefilled email instead. */
+  function sendSuggestion() {
+    var box = view.querySelector('#suggestbox');
+    var note = view.querySelector('[data-role="suggest-note"]');
+    if (!box) return;
+
+    var text = (box.value || '').trim();
+    if (!text) { box.focus(); return; }
+
+    if (current.slug) Store.saveDraft(current.slug, text);
+
+    var to = (window.CONFIG && CONFIG.tutorEmail) || '';
+    if (!to || to.indexOf('REPLACE-ME') === 0) {
+      if (note) {
+        note.textContent = 'Saved on this computer. No tutor email is set yet, ' +
+                           'so it could not be sent.';
+      }
+      return;
+    }
+
+    var who = Auth.nameOf(current.slug);
+    var url = 'mailto:' + to +
+              '?subject=' + encodeURIComponent('Study — a suggestion from ' + who) +
+              '&body=' + encodeURIComponent(text + '\n\n— ' + who);
+
+    location.href = url;
+    if (note) note.textContent = 'Saved, and your email should be opening now.';
+  }
 
   function doLogin() {
     var name = view.querySelector('#lname');
@@ -161,6 +203,7 @@
       var slug = Auth.login(name.value, code.value);
       if (slug) {
         loginFailed = false;
+        Store.recordSignIn(slug);
         location.hash = '#/k/' + slug;
       } else {
         loginFailed = true;
@@ -184,10 +227,20 @@
   });
 
   /* Picking a name jumps straight to the password box. */
+  view.addEventListener('input', function (ev) {
+    if (ev.target.id !== 'suggestbox' || !current.slug) return;
+    Store.saveDraft(current.slug, ev.target.value);
+  });
+
   view.addEventListener('change', function (ev) {
     if (ev.target.id !== 'lname' || !ev.target.value) return;
     var code = view.querySelector('#lcode');
     if (code) code.focus();
+  });
+
+  view.addEventListener('input', function (ev) {
+    if (ev.target.id !== 'suggestbox' || !current.slug) return;
+    Store.saveDraft(current.slug, ev.target.value);
   });
 
   view.addEventListener('change', function (ev) {

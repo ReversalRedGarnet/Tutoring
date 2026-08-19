@@ -724,11 +724,153 @@ a { color: var(--teal); }
 }
 
 /* ============================================================
+   Dashboard
+   ============================================================ */
+.panel {
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 1.1rem 1.15rem 1.15rem;
+  margin: 0 0 1.25rem;
+}
+
+.panel-label {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 .9rem;
+}
+
+.panel-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .9rem;
+}
+
+.linkbtn {
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  background: none;
+  border: 0;
+  color: var(--teal);
+  cursor: pointer;
+  padding: 0;
+}
+
+.linkbtn:hover { text-decoration: underline; }
+
+/* --- topic cards --- */
+.tgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: .7rem;
+}
+
+/* Cards past the visible count are marked in JS, not selected by CSS —
+   a substring match on an inline order value would also catch 10-16. */
+.tcard.is-hidden { display: none; }
+
+.tcard {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  min-height: 6.5rem;
+  padding: .7rem .8rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.tcard:hover { border-color: var(--teal); }
+
+.tcard-num {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--ink-soft);
+}
+
+.tcard-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .95rem;
+  line-height: 1.25;
+  flex: 1 1 auto;
+}
+
+.tcard-state {
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  min-height: 1em;
+}
+
+.tcard.is-next { border-color: var(--teal); border-left-width: 3px; }
+.tcard.is-next .tcard-state { color: var(--teal); }
+.tcard.is-done .tcard-title { color: var(--ink-soft); }
+
+/* --- progress --- */
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1.25rem;
+}
+
+.pcell {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding-left: .8rem;
+  border-left: 2px solid var(--line);
+}
+
+.pcell-label {
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pcell-big {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.pcell-small { font-size: .85rem; color: var(--ink-soft); }
+
+/* --- suggestion box --- */
+.suggest-prompt { margin: 0 0 .7rem; }
+
+.suggestbox {
+  font: inherit;
+  width: 100%;
+  min-height: 6rem;
+  padding: .7rem .75rem;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.suggestbox:focus { border-color: var(--teal); }
+
+.suggest-note { font-size: .85rem; margin: .6rem 0 0; min-height: 1em; }
+
+/* ============================================================
    Print — a plain worksheet on white
    ============================================================ */
 @media print {
   .topbar, .foot, .btnrow, .btn, .noprint,
-  .answer, .hintbox, .ladder, .pager { display: none !important; }
+  .answer, .hintbox, .ladder, .pager,
+  .panel-foot, .suggestbox, .linkbtn { display: none !important; }
 
   body {
     background: #FFF;
