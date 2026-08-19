@@ -6,6 +6,10 @@
    regenerate js/data/learners.js.
 
    The site never loads this file.
+
+   Only Elliot has content so far. The others log in fine and see an
+   empty list — their clusters get built when a parent or teacher flags
+   something specific.
    ------------------------------------------------------------------ */
 
 var LEARNERS_SOURCE = {
@@ -17,55 +21,50 @@ var LEARNERS_SOURCE = {
       levels: ['AU-7'],
       subjects: ['maths'],
       homework: 'none',
-      queue: ['m6-frac-equiv', 'm7-frac-add-unlike', 'm7-frac-mult', 'm7-integers']
+      queue: [
+        'fr-01-what-is',
+        'fr-02-of-a-set',
+        'fr-03-why',
+        'fr-04-representing',
+        'fr-05-types',
+        'fr-06-like-unlike',
+        'fr-07-equivalent',
+        'fr-08-simplifying',
+        'fr-09-comparing',
+        'fr-10-converting',
+        'fr-11-add-like',
+        'fr-12-add-unlike',
+        'fr-13-add-mixed',
+        'fr-14-multiplying',
+        'fr-15-dividing',
+        'fr-16-word-problems',
+        'fr-17-review'
+      ]
     }
   },
 
   honitalo: {
     name: 'Honitalo',
     password: 'kaliki',
-    record: {
-      levels: ['SI-6'],
-      subjects: ['maths', 'english', 'science', 'health', 'social-studies', 'history'],
-      homework: 'print',
-      queue: ['m6-place-value', 'm6-frac-equiv', 'm6-lcm', 'e6-sentence-parts',
-              's6-states-matter', 'ss6-provinces', 'h6-early-settlement', 'hl6-nutrition']
-    }
+    record: { levels: ['SI-6'], subjects: [], homework: 'print', queue: [] }
   },
 
   letisha: {
     name: 'Letisha',
     password: 'rainbow',
-    record: {
-      levels: ['SI-7'],
-      subjects: ['maths', 'english', 'science', 'health', 'social-studies', 'history', 'agriculture'],
-      homework: 'print',
-      queue: ['m6-frac-equiv', 'm7-frac-add-unlike', 'e6-sentence-parts', 's7-cells',
-              'hl6-nutrition', 'ag7-soil', 'h6-early-settlement']
-    }
+    record: { levels: ['SI-7'], subjects: [], homework: 'print', queue: [] }
   },
 
   jordesh: {
     name: 'Jordesh',
     password: 'florence',
-    record: {
-      levels: ['SI-9'],
-      subjects: ['maths', 'english', 'science', 'social-studies'],
-      homework: 'device',
-      queue: ['m7-integers', 'm9-linear-eq', 's9-forces', 'e9-paragraph-argument', 'ss9-government']
-    }
+    record: { levels: ['SI-9'], subjects: [], homework: 'device', queue: [] }
   },
 
   yvonne: {
     name: 'Yvonne',
     password: 'chinatown',
-    record: {
-      levels: ['SI-10'],
-      subjects: ['maths', 'english', 'science', 'social-studies'],
-      homework: 'device',
-      queue: ['m9-linear-eq', 'm10-quadratic-factor', 's10-chem-reactions',
-              'e9-paragraph-argument', 'ss9-government']
-    }
+    record: { levels: ['SI-10'], subjects: [], homework: 'device', queue: [] }
   }
 
 };

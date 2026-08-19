@@ -560,11 +560,175 @@ a { color: var(--teal); }
 .depth-3 { padding-left: 3.75rem; }
 
 /* ============================================================
+   Lesson sections — W3Schools shape, sharpened
+   ============================================================ */
+.sect {
+  margin: 0 0 2rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--line);
+}
+
+.sect h2 {
+  font-size: 1.15rem;
+  margin-bottom: .6rem;
+}
+
+.plainlist {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.plainlist li {
+  font-family: var(--font-mono);
+  font-size: .92rem;
+  padding: .3rem 0 .3rem .9rem;
+  border-left: 2px solid var(--line);
+  margin-bottom: .2rem;
+}
+
+/* The worked example. Monospaced so columns line up. */
+.example {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--teal);
+  padding: .9rem 1rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.example-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: .5rem;
+}
+
+.example pre {
+  font-family: var(--font-mono);
+  font-size: .88rem;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  color: var(--ink);
+}
+
+.rule {
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--amber);
+  padding: .8rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.rule-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: .3rem;
+}
+
+.rule p { margin: 0; font-weight: 600; }
+
+.note {
+  font-size: .95rem;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--amber);
+  padding-left: .8rem;
+  margin: 0 0 1rem;
+}
+
+.note strong { color: var(--amber); }
+
+/* The false-rule guards. Deliberately not red — this is a warning
+   about a trap, not a mark against anyone. */
+.careful {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--amber);
+  padding: .9rem 1rem;
+  margin: 0 0 .9rem;
+}
+
+.careful p { margin: 0; }
+
+.careful-head {
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin-bottom: .35rem !important;
+}
+
+.careful-link { margin-top: .5rem !important; font-size: .9rem; }
+
+/* ============================================================
+   Previous / next
+   ============================================================ */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.pager a {
+  flex: 1 1 0;
+  min-width: 0;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  padding: .6rem .85rem;
+  background: var(--card);
+}
+
+.pager a:hover { border-color: var(--teal); }
+
+.pager-next { text-align: right; }
+
+.pager-dir {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.pager-name {
+  display: block;
+  color: var(--ink);
+  font-size: .92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pager-count {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.pager > span:empty { flex: 1 1 0; }
+
+@media (max-width: 34rem) {
+  .pager { flex-wrap: wrap; }
+  .pager-count { order: 3; width: 100%; text-align: center; }
+}
+
+/* ============================================================
    Print — a plain worksheet on white
    ============================================================ */
 @media print {
   .topbar, .foot, .btnrow, .btn, .noprint,
-  .answer, .hintbox, .ladder { display: none !important; }
+  .answer, .hintbox, .ladder, .pager { display: none !important; }
 
   body {
     background: #FFF;
@@ -590,6 +754,15 @@ a { color: var(--teal); }
   }
 
   .oneidea p, .item .q, h1, h2, h3 { color: #000; }
+
+  .example, .rule, .careful {
+    background: #FFF;
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+
+  .example pre, .rule p, .note, .careful p { color: #000; }
+  .sect { border-left: 1px solid #CCC; }
   .scratch { min-height: 5rem; background: #FFF; border-color: #999; }
 }
 

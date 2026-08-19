@@ -106,13 +106,19 @@ var Views = (function () {
                 '<p class="muted" style="margin:0">' + esc(next.one_idea) + '</p>' +
                 '<div class="btnrow"><a class="btn solid" href="#/t/' + esc(next.id) + '">Start</a></div>' +
               '</div>';
+    } else if (!queue.length) {
+      html += '<h1>Nothing here yet</h1>' +
+              '<p class="muted">Your tutor has not put anything on your list. ' +
+              'That is not a mistake — it just means the next thing is still being written.</p>';
     } else {
-      html += '<h1>Nothing waiting</h1>' +
+      html += '<h1>All done</h1>' +
               '<p class="muted">Everything on the list is finished. Pick anything below to go over again.</p>';
     }
 
     /* --- rest of the list --- */
-    html += '<h2 style="margin-top:2rem">The rest of the list</h2><ul class="tlist">';
+    if (queue.length) {
+      html += '<h2 style="margin-top:2rem">The rest of the list</h2><ul class="tlist">';
+    }
     queue.forEach(function (t) {
       var done = Store.isDone(slug, t.id);
       html += '<li>' +
@@ -121,9 +127,10 @@ var Views = (function () {
                   (done ? ' &middot; done' : '') + '</span>' +
               '</li>';
     });
-    html += '</ul>';
-
-    html += '<p style="margin-top:2rem"><a href="#/map">See how these topics connect</a></p>';
+    if (queue.length) {
+      html += '</ul>';
+      html += '<p style="margin-top:2rem"><a href="#/map">See how these topics connect</a></p>';
+    }
     return html;
   }
 
@@ -175,6 +182,72 @@ var Views = (function () {
   }
 
   /* ---------------------------------------------------------- */
+  /* Lesson sections — short block, worked example, boxed rule    */
+  /* ---------------------------------------------------------- */
+  function sections(list) {
+    var h = '';
+    (list || []).forEach(function (sec) {
+      h += '<section class="sect">';
+      if (sec.h) h += '<h2>' + esc(sec.h) + '</h2>';
+
+      (sec.p || []).forEach(function (para) {
+        h += '<p>' + esc(para) + '</p>';
+      });
+
+      if (sec.list && sec.list.length) {
+        h += '<ul class="plainlist">';
+        sec.list.forEach(function (li) { h += '<li>' + esc(li) + '</li>'; });
+        h += '</ul>';
+      }
+
+      if (sec.example) {
+        h += '<div class="example">' +
+               '<span class="example-label">' + esc(sec.example.label || 'Example') + '</span>' +
+               '<pre>' + esc((sec.example.lines || []).join('\n')) + '</pre>' +
+             '</div>';
+      }
+
+      if (sec.rule) {
+        h += '<div class="rule">' +
+               '<span class="rule-label">Remember</span>' +
+               '<p>' + esc(sec.rule) + '</p>' +
+             '</div>';
+      }
+
+      if (sec.note) h += '<p class="note"><strong>Note:</strong> ' + esc(sec.note) + '</p>';
+
+      h += '</section>';
+    });
+    return h;
+  }
+
+  /* Previous / next within the learner's own sequence. */
+  function pager(id, slug) {
+    var L = Auth.record();
+    if (!L || !L.queue) return '';
+    var i = L.queue.indexOf(id);
+    if (i < 0) return '';
+
+    var prev = i > 0 ? Topics.get(L.queue[i - 1]) : null;
+    var next = i < L.queue.length - 1 ? Topics.get(L.queue[i + 1]) : null;
+
+    var h = '<nav class="pager noprint">';
+    h += prev
+      ? '<a class="pager-prev" href="#/t/' + esc(prev.id) + '">' +
+          '<span class="pager-dir">Previous</span>' +
+          '<span class="pager-name">' + esc(prev.title) + '</span></a>'
+      : '<span></span>';
+    h += '<span class="pager-count">' + (i + 1) + ' of ' + L.queue.length + '</span>';
+    h += next
+      ? '<a class="pager-next" href="#/t/' + esc(next.id) + '">' +
+          '<span class="pager-dir">Next</span>' +
+          '<span class="pager-name">' + esc(next.title) + '</span></a>'
+      : '<span></span>';
+    h += '</nav>';
+    return h;
+  }
+
+  /* ---------------------------------------------------------- */
   /* Topic                                                       */
   /* ---------------------------------------------------------- */
   function topic(id, slug) {
@@ -205,7 +278,11 @@ var Views = (function () {
 
     html += '<div class="oneidea"><p>' + esc(t.one_idea) + '</p></div>';
 
-    /* worked example — only exists once the topic is promoted to 'taught' */
+    if (t.sections && t.sections.length) {
+      html += sections(t.sections);
+    }
+
+    /* worked example — older shape, kept for topics not yet rewritten */
     if (t.worked && t.worked.length) {
       html += '<h2>Watch it done</h2>';
       t.worked.forEach(function (w) {
@@ -226,7 +303,7 @@ var Views = (function () {
       });
     }
 
-    if (!t.worked || !t.worked.length) {
+    if ((!t.worked || !t.worked.length) && (!t.sections || !t.sections.length)) {
       html += '<p class="stub-note noprint">This one has no worked example written up yet — ' +
               'your tutor will do it with you on paper.</p>';
     }
@@ -234,11 +311,13 @@ var Views = (function () {
     if (t.confusable_with && t.confusable_with.length) {
       html += '<h2>Careful — this is not the same as</h2>';
       t.confusable_with.forEach(function (c) {
-        var other = Topics.get(c.id);
-        html += '<div class="card">' +
-                  '<p style="margin:0 0 .3rem"><strong>' +
-                    esc(other ? other.title : c.id) + '</strong></p>' +
-                  '<p style="margin:0">' + esc(c.why) + '</p>' +
+        var other = c.id ? Topics.get(c.id) : null;
+        var label = other ? other.title : (c.label || c.id);
+        html += '<div class="careful">' +
+                  '<p class="careful-head">' + esc(label) + '</p>' +
+                  '<p>' + esc(c.why) + '</p>' +
+                  (other ? '<p class="careful-link"><a href="#/t/' + esc(c.id) +
+                           '">Go to ' + esc(other.title) + '</a></p>' : '') +
                 '</div>';
       });
     }
@@ -268,6 +347,8 @@ var Views = (function () {
       html += '<a class="btn" href="#/">Sign in to save your place</a>';
     }
     html += '</div>';
+
+    html += pager(id, slug);
 
     return html;
   }

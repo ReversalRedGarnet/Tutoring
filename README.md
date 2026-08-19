@@ -26,7 +26,7 @@ index.html              shell, header and footer
 tools/encrypt.html      regenerates learners.js (tutor only)
 private/                plaintext learner records — gitignored
 css/style.css           all styling
-js/data/topics.*.js     the library, one file per subject
+js/data/topics.*.js     the library, one file per block
 js/data/learners.js     slug -> ordered list of topic ids
 js/crypto.js            SHA-256, key derivation, record cipher
 js/store.js             progress, login, session, graph helpers
@@ -101,31 +101,66 @@ the main protection. This is defence in depth.
 
 ---
 
-## Why the topics are thin, and how to thicken them
+## Content
 
-Every topic carries a `tier`:
+`js/data/topics.fractions.js` is a complete 17-topic sequence for AU
+Year 7, following Elliot's teaching order from introduction through to
+review. 89 practice items, 31 retrieval items, 15 false-rule guards.
+Every prerequisite resolves, and nothing depends on a topic that comes
+later in his queue.
 
-- **`stub`** — `one_idea` plus three to five practice items with answers.
-  About five minutes to write. This is the default and most topics should
-  stay here indefinitely.
-- **`taught`** — a stub plus `worked` and `guided`. Write these the week
-  you actually teach the topic, not before.
+Each topic carries a `tier`:
+
+- **`stub`** — `one_idea` plus practice items. About five minutes to
+  write. Fine when you are in the room to explain it.
+- **`taught`** — a full lesson in `sections`. All 17 fractions topics
+  are at this tier.
 
 The library is **not a syllabus and is not trying to become one.** Topics
 enter it because a parent or teacher flagged something specific that is
-confusing a specific kid — a cluster like "fractions, kinds of fractions,
-fractions to decimals" — not because a curriculum document lists them.
-Coverage is never the goal and there is no finish line to fall short of.
+confusing a specific child — a cluster, not a subject. Coverage is never
+the goal and there is no finish line to fall short of.
 
-What that means in practice: the library grows as sparse clusters, and the
-prerequisite chain matters *more* than it would in a full curriculum,
-because the job is usually finding the earlier thing that broke. When a
-cluster arrives, add the confusing topics **and** the one or two topics
-underneath them, even if nobody asked for those — that is where the
+When a cluster arrives, add the confusing topics **and** the one or two
+topics underneath them, even if nobody asked for those. That is where the
 diagnosis usually lands.
 
-`m6-frac-equiv` and `m7-frac-add-unlike` are written out as `taught` so
-there is a worked example to copy the shape from. Everything else is a stub.
+The other four learners have empty queues on purpose. They log in fine and
+see "Nothing here yet", which is a different message from "All done".
+
+### Section shape
+
+Sections follow the W3Schools pattern — short block, worked example,
+boxed rule — because it chunks well for a learner who drifts:
+
+```js
+sections: [{
+  h: 'Find a common denominator',
+  p: ['Short paragraph.'],
+  list: ['bullet', 'bullet'],
+  example: { label: 'Example', lines: ['monospaced', 'so columns line up'] },
+  rule: 'The thing to remember, boxed.',
+  note: 'A short warning, inline.'
+}]
+```
+
+`example.lines` renders in monospace, so worked steps and columns line up.
+
+### False-rule guards
+
+`confusable_with` renders as "Careful — this is not the same as". Entries
+take either a topic id or a plain label:
+
+```js
+confusable_with: [
+  { id: 'fr-14-multiplying', why: 'Adding needs a common denominator...' },
+  { label: 'Bigger denominator means bigger fraction', why: 'It is the opposite...' }
+]
+```
+
+The label form is for false rules that are not topics — "multiplying
+always makes things bigger", "flip the first fraction". Naming a trap
+before a learner invents it is cheaper than unteaching it afterwards.
 
 ---
 
@@ -210,6 +245,10 @@ Falls back to the prerequisites of the upcoming topic on a fresh device.
 **"Careful — this is not the same as"** renders `confusable_with`. For the
 learner who invents connections between unrelated topics: name the false
 connection before he makes it.
+
+**Previous / next** at the foot of every topic, with position in the
+sequence. The order comes from the learner's own queue, so each child gets
+their path and not a generic one.
 
 **One idea per screen**, large type, Atkinson Hyperlegible for the body
 text — a face designed for legibility rather than for looks.
