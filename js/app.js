@@ -16,6 +16,30 @@
   var loginFailed = false;
 
   var LAST_KEY = 'study:last-slug';
+  var THEME_KEY = 'study:theme';
+
+  var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+            'stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/>' +
+            '<path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4' +
+            'M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+
+  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+             'stroke-width="2" aria-hidden="true">' +
+             '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/></svg>';
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light'
+      ? 'light' : 'dark';
+  }
+
+  function setTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  }
 
   function rememberSlug(s) {
     current.slug = s;
@@ -30,6 +54,13 @@
     var bits = [];
     if (current.slug) bits.push('<a href="#/k/' + current.slug + '">My list</a>');
     bits.push('<a href="#/map">Map</a>');
+
+    var light = currentTheme() === 'light';
+    bits.push('<button class="themebtn" data-act="theme" type="button" ' +
+              'aria-label="Switch to ' + (light ? 'dark' : 'light') + ' mode">' +
+              (light ? MOON : SUN) +
+              '<span>' + (light ? 'Dark' : 'Light') + '</span></button>');
+
     if (current.slug) bits.push('<a href="#/">Finish</a>');
     nav.innerHTML = bits.join('');
   }
@@ -38,6 +69,9 @@
     var hash = (location.hash || '#/').replace(/^#/, '');
     var parts = hash.split('/').filter(Boolean);
     var html;
+    /* Card grids and list rows get the wider measure; lesson prose does
+       not, because long lines of body text are harder to track. */
+    var wide = parts[0] === 'k' || parts[0] === 'u' || parts[0] === 'map';
 
     if (parts[0] === 'k' && parts[1]) {
       var slug = parts[1];
@@ -80,6 +114,7 @@
 
 
     view.innerHTML = html;
+    view.classList.toggle('is-wide', wide);
     renderNav();
     window.scrollTo(0, 0);
 
@@ -145,6 +180,12 @@
 
     if (act === 'login') {
       doLogin();
+      return;
+    }
+
+    if (act === 'theme') {
+      setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+      renderNav();
       return;
     }
 
@@ -255,6 +296,13 @@
     if (ev.target.id !== 'lname' || !ev.target.value) return;
     var code = view.querySelector('#lcode');
     if (code) code.focus();
+  });
+
+  nav.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('[data-act="theme"]');
+    if (!btn) return;
+    setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    renderNav();
   });
 
   window.addEventListener('hashchange', route);

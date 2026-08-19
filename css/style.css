@@ -2,34 +2,60 @@
    Study — dark teal
    ============================================================ */
 :root {
-  /* Deep enough to be restful across an hour, with a single bright
-     teal doing all the pointing. Amber appears only on hints and
-     retries — never on anything that reads as a mark. */
-  --paper:      #071A20;   /* page */
-  --deep:       #041217;   /* header, deepest surface */
-  --card:       #0C2830;   /* raised panels */
-  --wash:       #10333D;   /* quiet fills */
-  --line:       #1D4855;   /* borders */
-
+  /* --- page surfaces: these flip with the theme --- */
+  --paper:      #071A20;
+  --card:       #0C2830;
+  --wash:       #10333D;
+  --line:       #1D4855;
   --ink:        #E4F1F0;
   --ink-soft:   #8FB0B4;
-
-  --teal:       #38C6B4;   /* the one accent */
+  --teal:       #38C6B4;
   --teal-d:     #21998C;
   --amber:      #E5A84C;
   --amber-wash: #2A2317;
+  --on-teal:    #041217;   /* text on a teal fill */
 
-  /* Circuit traces for the header and footer. Inline data URI, so no
-     extra request and nothing to 404. */
+  /* --- chrome: header and footer stay deep teal in BOTH themes, so the
+         circuit traces keep working and the site keeps its identity --- */
+  --chrome-bg:       #041217;
+  --chrome-ink:      #E4F1F0;
+  --chrome-ink-soft: #8FB0B4;
+  --chrome-line:     #1D4855;
+  --chrome-teal:     #38C6B4;
+  --chrome-dim:      #4E717A;
+
+  /* Circuit traces. Always drawn on the dark chrome, so one version. */
   --trace: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80' viewBox='0 0 160 80'%3E%3Cg fill='none' stroke='%2338C6B4' stroke-width='1.4'%3E%3Cpath d='M0 16h34l12 12h38'/%3E%3Cpath d='M84 28v22h34l12-12h30'/%3E%3Cpath d='M0 64h26l10-10h30'/%3E%3Cpath d='M110 0v12l10 10h40'/%3E%3Cpath d='M46 80v-14h24'/%3E%3C/g%3E%3Cg fill='%2338C6B4'%3E%3Crect x='31.5' y='13.5' width='5' height='5'/%3E%3Crect x='81.5' y='25.5' width='5' height='5'/%3E%3Crect x='115.5' y='35.5' width='5' height='5'/%3E%3Crect x='23.5' y='61.5' width='5' height='5'/%3E%3Crect x='67.5' y='63.5' width='5' height='5'/%3E%3C/g%3E%3C/svg%3E");
 
   --rail-w: 3px;
   --radius: 0;
-  --measure: 42rem;
+
+  /* Laptops are the main screen, so both are generous. Prose stays at
+     --measure; card grids and the unit list get --measure-wide. */
+  --measure:      52rem;
+  --measure-wide: 66rem;
 
   --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* ============================================================
+   Light theme — soft white, not stark. Teal and amber are darkened
+   so they still carry enough contrast against a pale background.
+   ============================================================ */
+[data-theme="light"] {
+  --paper:      #F6F8F6;
+  --card:       #FFFFFF;
+  --wash:       #E9F1EF;
+  --line:       #CBD9D6;
+  --ink:        #11201F;
+  --ink-soft:   #556967;
+  --teal:       #10786A;
+  --teal-d:     #0B5B50;
+  --amber:      #9A5F09;
+  --amber-wash: #FBF2E0;
+  --on-teal:    #FFFFFF;
 }
 
 * { box-sizing: border-box; }
@@ -83,8 +109,8 @@ a { color: var(--teal); }
   gap: 1rem;
   flex-wrap: wrap;
   padding: .9rem 1.25rem 1rem;
-  background: var(--deep);
-  color: var(--ink);
+  background: var(--chrome-bg);
+  color: var(--chrome-ink);
   overflow: hidden;
 }
 
@@ -109,13 +135,13 @@ a { color: var(--teal); }
   align-items: center;
   gap: .55rem;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--chrome-ink);
 }
 
 .brand-mark {
   width: 1.55rem;
   height: 1.55rem;
-  color: var(--teal);
+  color: var(--chrome-teal);
   flex: none;
 }
 
@@ -127,7 +153,7 @@ a { color: var(--teal); }
 }
 
 .brand-caret {
-  color: var(--teal);
+  color: var(--chrome-teal);
   animation: blink 1.2s steps(1) infinite;
 }
 
@@ -141,19 +167,39 @@ a { color: var(--teal); }
   font-size: .85rem;
 }
 
-.topnav a {
-  color: var(--ink-soft);
+.topnav a, .themebtn {
+  color: var(--chrome-ink-soft);
   text-decoration: none;
 }
 
-.topnav a:hover { color: var(--teal); }
+.topnav a:hover, .themebtn:hover { color: var(--chrome-teal); }
+
+/* Theme toggle sits in the nav and reads as one of the links. */
+.themebtn {
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.themebtn svg {
+  width: .95rem;
+  height: .95rem;
+  flex: none;
+}
 
 /* Hairline under the header, brightest under the wordmark. */
 .topbar-rule {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 1px;
-  background: linear-gradient(90deg, var(--teal), var(--line) 45%, transparent);
+  background: linear-gradient(90deg, var(--chrome-teal), var(--chrome-line) 45%, transparent);
   opacity: .8;
 }
 
@@ -170,17 +216,22 @@ a { color: var(--teal); }
   width: 100%;
   max-width: var(--measure);
   margin: auto;
-  padding: 2.5rem 1.25rem 3rem;
+  padding: 2.5rem 1.5rem 3rem;
 }
+
+/* Dashboard and unit list: card grids and rows, not running prose, so
+   they take the wider measure. Lesson pages stay at --measure because
+   long lines of body text get harder to track, not easier. */
+.page.is-wide { max-width: var(--measure-wide); }
 
 /* ============================================================
    Footer
    ============================================================ */
 .foot {
   position: relative;
-  background: var(--deep);
-  border-top: 1px solid var(--line);
-  color: var(--ink-soft);
+  background: var(--chrome-bg);
+  border-top: 1px solid var(--chrome-line);
+  color: var(--chrome-ink-soft);
   font-size: .9rem;
   padding: 2.25rem 1.25rem 1.5rem;
 }
@@ -200,7 +251,7 @@ a { color: var(--teal); }
 .foot-inner {
   position: relative;
   z-index: 1;
-  max-width: var(--measure);
+  max-width: var(--measure-wide);
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
@@ -213,13 +264,13 @@ a { color: var(--teal); }
 .foot-mark {
   width: 1.6rem;
   height: 1.6rem;
-  color: var(--teal);
+  color: var(--chrome-teal);
   opacity: .85;
 }
 
 .foot-tag {
   font-family: var(--font-display);
-  color: var(--ink);
+  color: var(--chrome-ink);
   margin: .4rem 0 0;
   font-size: 1rem;
 }
@@ -243,22 +294,22 @@ a { color: var(--teal); }
   font-size: .7rem;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--teal);
+  color: var(--chrome-teal);
   margin: 0 0 .2rem;
 }
 
-.foot-col a { color: var(--ink-soft); text-decoration: none; }
-.foot-col a:hover { color: var(--teal); }
+.foot-col a { color: var(--chrome-ink-soft); text-decoration: none; }
+.foot-col a:hover { color: var(--chrome-teal); }
 
-.foot-soon { color: #4E717A; }
+.foot-soon { color: var(--chrome-dim); }
 
 .foot-note {
   position: relative;
   z-index: 1;
-  max-width: var(--measure);
+  max-width: var(--measure-wide);
   margin: 2rem auto 0;
   padding-top: 1rem;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--chrome-line);
   font-size: .8rem;
   text-align: center;
 }
@@ -302,7 +353,7 @@ a { color: var(--teal); }
 .btn.solid {
   background: var(--teal);
   border-color: var(--teal);
-  color: var(--deep);
+  color: var(--on-teal);
   font-weight: 700;
 }
 
@@ -942,7 +993,7 @@ a.ucard:hover { border-color: var(--teal); }
 @media print {
   .topbar, .foot, .btnrow, .btn, .noprint,
   .answer, .hintbox, .ladder, .pager,
-  .panel-foot, .suggestbox, .linkbtn { display: none !important; }
+  .panel-foot, .suggestbox, .linkbtn, .themebtn { display: none !important; }
 
   body {
     background: #FFF;

@@ -325,8 +325,30 @@ SVG data URIs in the CSS variables `--trace-light` and `--trace-dark`. They
 sit in `::before` pseudo-elements at 10% and 6% opacity so the decoration
 can never reduce text contrast. Footer columns are placeholders.
 
-**Dark teal throughout**, with one bright teal doing all the pointing and
-amber reserved for hints and retries — so nothing that reads as a mark
+**Two themes**, toggled from the header and remembered per browser. Dark
+is the default and is unchanged. Light is a soft white — `#F6F8F6`, not
+stark `#FFFFFF` — with the teal and amber darkened so they still carry
+contrast on a pale background. Every text pair in both themes clears WCAG
+AA at 4.5:1 or better.
+
+The header and footer stay deep teal in **both** themes. That is why the
+palette is split into page tokens (`--paper`, `--ink`, `--teal`) which
+flip, and chrome tokens (`--chrome-bg`, `--chrome-ink`, `--chrome-teal`)
+which do not. The circuit traces are drawn for a dark background, so
+keeping the chrome dark means one version of them rather than two.
+
+A small script in `<head>` applies the saved theme before first paint, so
+there is no flash of the wrong background on load.
+
+**Two widths**, because laptops are the main screen. `--measure` (52rem)
+is for lesson prose; `--measure-wide` (66rem) is for the dashboard, unit
+list and map, where the content is card grids and rows rather than running
+text. Long lines of body text get harder to track, not easier, so lessons
+deliberately do not use the wider measure. Both are one variable each if
+you want to change them.
+
+**One bright teal** does all the pointing, and amber is reserved for hints
+and retries — so nothing that reads as a mark
 ever appears in a warning colour. The header and footer carry faint
 circuit traces and a node-and-edge mark, which is the prerequisite graph
 itself: three nodes with an edge through them, the same idea as the ladder
