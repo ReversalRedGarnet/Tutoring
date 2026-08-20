@@ -52,8 +52,10 @@
 
   function renderNav() {
     var bits = [];
-    if (current.slug) bits.push('<a href="#/k/' + current.slug + '">My list</a>');
-    bits.push('<a href="#/map">Map</a>');
+    if (current.slug) {
+      bits.push('<a href="#/k/' + current.slug + '">My list</a>');
+      bits.push('<a href="#/map">Map</a>');
+    }
 
     var light = currentTheme() === 'light';
     bits.push('<button class="themebtn" data-act="theme" type="button" ' +
@@ -94,6 +96,7 @@
     } else if (parts[0] === 't' && parts[1]) {
       if (!current.slug) current.slug = recallSlug();
       if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
+      if (!current.slug) { location.hash = '#/'; return; }
       html = Views.topic(parts[1], current.slug);
       var t = Topics.get(parts[1]);
       document.title = (t ? t.title : 'Topic') + ' — Study';
@@ -101,6 +104,7 @@
     } else if (parts[0] === 'map') {
       if (!current.slug) current.slug = recallSlug();
       if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
+      if (!current.slug) { location.hash = '#/'; return; }
       html = Views.map(current.slug);
       document.title = 'Topic map — Study';
 
@@ -220,6 +224,15 @@
     if (current.slug) Store.saveDraft(current.slug, text);
 
     var to = (window.CONFIG && CONFIG.tutorEmail) || '';
+
+    /* Anything beyond a plain address could smuggle extra mail headers
+       (?cc=, &bcc=) into the link, so reject rather than sanitise. */
+    if (to && !/^[^\s@?&<>"']+@[^\s@?&<>"']+\.[^\s@?&<>"']+$/.test(to)) {
+      if (note) note.textContent = 'Saved on this computer. The tutor email in ' +
+                                   'config.js is not a valid address.';
+      return;
+    }
+
     if (!to || to.indexOf('REPLACE-ME') === 0) {
       if (note) {
         note.textContent = 'Saved on this computer. No tutor email is set yet, ' +

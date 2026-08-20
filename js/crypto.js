@@ -184,13 +184,41 @@ var Crypt = (function () {
     return toHex(derive(password, 'study-verify-v1'));
   }
 
+  /* ---------- randomness ---------- */
+
+  /* crypto.getRandomValues IS available from file:// — it is only
+     crypto.subtle that requires a secure context. The fallback exists
+     for very old browsers and is deliberately not relied on. */
+  function randomBytes(n) {
+    var out = new Array(n);
+    var i;
+
+    var g = (typeof crypto !== 'undefined' && crypto.getRandomValues) ? crypto
+          : (typeof msCrypto !== 'undefined' && msCrypto.getRandomValues) ? msCrypto
+          : null;
+
+    if (g) {
+      var a = new Uint8Array(n);
+      g.getRandomValues(a);
+      for (i = 0; i < n; i++) out[i] = a[i];
+      return out;
+    }
+
+    for (i = 0; i < n; i++) out[i] = Math.floor(Math.random() * 256);
+    var stamp = sha256(utf8ToBytes(String(Date.now()) + Math.random()));
+    for (i = 0; i < n; i++) out[i] ^= stamp[i % 32];
+    return out;
+  }
+
   /* ---------- keystream cipher ---------- */
 
-  function keystream(key, n) {
+  var NONCE = 8;
+
+  function keystream(key, nonce, n) {
     var out = [];
     var counter = 0;
     while (out.length < n) {
-      var block = sha256(key.concat([
+      var block = sha256(key.concat(nonce, [
         (counter >>> 24) & 255, (counter >>> 16) & 255,
         (counter >>> 8) & 255, counter & 255
       ]));
@@ -200,27 +228,45 @@ var Crypt = (function () {
     return out.slice(0, n);
   }
 
+  /* A FRESH NONCE ON EVERY ENCRYPTION IS NOT OPTIONAL.
+
+     Without it, encrypting twice under the same password produces the
+     same keystream, and anyone holding two versions of a record — which
+     git history hands them, since this file is regenerated and committed
+     whenever a queue changes — can XOR the two ciphertexts together and
+     the key cancels out. That recovers the plaintext difference with no
+     password at all. Classic two-time pad.
+
+     Format: nonce (8 bytes) | ciphertext | tag (8 bytes) */
   function encrypt(obj, password) {
     var key = derive(password, 'study-record-v1');
+    var nonce = randomBytes(NONCE);
     var plain = utf8ToBytes(JSON.stringify(obj));
-    var ks = keystream(key, plain.length);
+    var ks = keystream(key, nonce, plain.length);
     var cipher = plain.map(function (b, i) { return b ^ ks[i]; });
-    /* Trailing tag so a wrong key is detected rather than yielding junk. */
-    var tag = sha256(key.concat(plain)).slice(0, 8);
-    return toB64(cipher.concat(tag));
+
+    /* The tag covers the nonce as well, so it cannot be swapped. */
+    var tag = sha256(key.concat(nonce, plain)).slice(0, 8);
+
+    return toB64(nonce.concat(cipher, tag));
   }
 
   function decrypt(blob, password) {
     try {
-      var key = derive(password, 'study-record-v1');
       var all = fromB64(blob);
-      if (all.length < 9) return null;
-      var cipher = all.slice(0, all.length - 8);
+      if (all.length < NONCE + 8 + 1) return null;
+
+      var key = derive(password, 'study-record-v1');
+      var nonce = all.slice(0, NONCE);
+      var cipher = all.slice(NONCE, all.length - 8);
       var tag = all.slice(all.length - 8);
-      var ks = keystream(key, cipher.length);
+
+      var ks = keystream(key, nonce, cipher.length);
       var plain = cipher.map(function (b, i) { return b ^ ks[i]; });
-      var check = sha256(key.concat(plain)).slice(0, 8);
+
+      var check = sha256(key.concat(nonce, plain)).slice(0, 8);
       for (var i = 0; i < 8; i++) if (check[i] !== tag[i]) return null;
+
       return JSON.parse(bytesToUtf8(plain));
     } catch (e) {
       return null;

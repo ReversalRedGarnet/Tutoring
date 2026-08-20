@@ -10,9 +10,16 @@
 
 var Views = (function () {
 
+  /* Escapes for both text nodes and attribute values. Quotes matter:
+     without them any value containing a " can break out of an attribute
+     and add its own. */
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   var SUBJECT_NAMES = {
@@ -137,17 +144,25 @@ var Views = (function () {
       if (!Units.isReady(units[i])) continue;
       var p = Units.progress(slug, units[i].id);
       if (p.finished) continue;
+      var nx = p.nextId ? Topics.get(p.nextId) : null;
       whereBig = units[i].title;
       whereSmall = 'Topic ' + (p.nextIndex + 1) + ' of ' + p.total +
-                   ' — ' + Topics.get(p.nextId).title;
+                   (nx ? ' — ' + nx.title : '');
       break;
     }
 
-    if (units.length && units.filter(Units.isReady).every(function (u) {
+    /* [].every() is true, so this needs at least one ready unit before
+       it can claim everything is finished. Without the length check a
+       learner whose units are all placeholders was told "All done". */
+    var ready = units.filter(Units.isReady);
+    if (ready.length && ready.every(function (u) {
       return Units.progress(slug, u.id).finished;
     })) {
       whereBig = 'All done';
       whereSmall = 'Nothing left on your list';
+    } else if (!ready.length) {
+      whereBig = 'Nothing ready yet';
+      whereSmall = 'Your units are still being written';
     }
 
     var body = '<div class="pgrid">' +

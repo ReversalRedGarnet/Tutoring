@@ -268,7 +268,14 @@ var Units = (function () {
     return found;
   }
 
-  function isReady(u) { return !!(u && u.topics && u.topics.length); }
+  /* Only ids that actually resolve to a topic. A typo in units.js then
+     drops that one row instead of taking down the whole unit page. */
+  function topicsOf(u) {
+    if (!u) return [];
+    return (u.topics || []).map(Topics.get).filter(Boolean);
+  }
+
+  function isReady(u) { return topicsOf(u).length > 0; }
 
   /* Position, never performance: how many are finished, and which one
      is next. No scores are derived from this anywhere. */
@@ -276,7 +283,7 @@ var Units = (function () {
     var u = get(unitId);
     if (!u) return null;
 
-    var ids = u.topics || [];
+    var ids = topicsOf(u).map(function (t) { return t.id; });
     var done = 0;
     var nextIndex = -1;
 
@@ -302,6 +309,7 @@ var Units = (function () {
     all: all,
     get: get,
     of: of,
+    topicsOf: topicsOf,
     isReady: isReady,
     progress: progress,
 

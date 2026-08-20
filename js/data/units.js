@@ -45,8 +45,25 @@ window.UNITS = [
   {
     id: 'decimals',
     title: 'Decimals',
-    blurb: 'Place value after the point, rounding, and the four operations.',
-    topics: []
+    blurb: 'Place value after the point, rounding, the four operations, and how decimals link to fractions.',
+    topics: [
+      'dc-01-what-is',
+      'dc-02-why',
+      'dc-03-place-value',
+      'dc-04-representing',
+      'dc-05-reading-writing',
+      'dc-06-comparing',
+      'dc-07-equivalent',
+      'dc-08-converting-fractions',
+      'dc-09-rounding',
+      'dc-10-add-subtract',
+      'dc-11-multiplying',
+      'dc-12-dividing',
+      'dc-13-fdp',
+      'dc-14-word-problems',
+      'dc-15-estimation',
+      'dc-16-review'
+    ]
   },
 
   {

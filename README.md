@@ -91,6 +91,17 @@ is detected rather than yielding garbage. Verification and decryption use
 separately salted keys, so the stored check value cannot shortcut the
 decryption.
 
+**Every encryption uses a fresh random 8-byte nonce**, stored on the front
+of the blob. This is not decoration. Without it, encrypting the same
+record twice under the same password produces the same keystream, and
+anyone holding two versions — which git history hands them, since this
+file is regenerated and committed whenever a queue changes — can XOR the
+two ciphertexts together and the key cancels out, recovering the plaintext
+with no password at all. If you ever rewrite the cipher, keep the nonce.
+
+Blob format: `nonce (8) | ciphertext | tag (8)`. The tag covers the nonce
+so it cannot be swapped.
+
 WebCrypto would be the obvious choice, but `crypto.subtle` is unavailable
 in a non-secure context and this site gets opened from `file://` during
 sessions. Hence the hand-rolled version.
@@ -103,9 +114,23 @@ the main protection. This is defence in depth.
 
 ---
 
+## Route guards
+
+Every content route — `#/k/`, `#/u/`, `#/t/`, `#/map` — redirects to the
+login screen when nobody is signed in. Signing out clears the decrypted
+record from `sessionStorage`, so the back button lands on the login screen
+rather than a stale page.
+
+---
+
 ## Set your email
 
-`js/config.js` has a placeholder `tutorEmail`. Until you change it, the
+`js/config.js` has a placeholder `tutorEmail`. It is validated before use
+— anything that is not a plain address is rejected rather than sanitised,
+since a stray `?` or `&` would let extra mail headers ride along in the
+`mailto:` link.
+
+ Until you change it, the
 suggestion box saves what a learner types but cannot send it, and says so
 rather than failing silently.
 
@@ -158,7 +183,13 @@ will not see it.
 ## Content
 
 Elliot has six units: Fractions, Decimals, Percentages, Perimeter, Basic
-area, Probability. Only Fractions is written.
+area, Probability. Fractions and Decimals are written.
+
+**Decimals** — 16 topics, 88 practice items, 17 false-rule guards. Six of
+its topics list a *fractions* topic as a prerequisite, so the ladder rail
+reaches back into the earlier unit. That is the point: when a decimal will
+not stick, the fundamental underneath it is one click away instead of
+forgotten.
 
 `js/data/topics.fractions.js` is a complete 17-topic sequence for AU
 Year 7, following Elliot's teaching order from introduction through to
