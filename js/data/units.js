@@ -70,28 +70,83 @@ window.UNITS = [
     id: 'percentages',
     title: 'Percentages',
     blurb: 'Percentages of amounts, increase and decrease, and converting between all three forms.',
-    topics: []
+    topics: [
+      'pc-01-what-is',
+      'pc-02-why',
+      'pc-03-representing',
+      'pc-04-fdp',
+      'pc-05-comparing',
+      'pc-06-of-amounts',
+      'pc-07-finding-whole',
+      'pc-08-increase',
+      'pc-09-decrease',
+      'pc-10-change',
+      'pc-11-word-problems',
+      'pc-12-estimation',
+      'pc-13-review'
+    ]
   },
 
   {
     id: 'perimeter',
     title: 'Perimeter',
     blurb: 'Distance around a shape, including compound shapes and missing sides.',
-    topics: []
+    topics: [
+      'pe-01-what-is',
+      'pe-02-measuring',
+      'pe-03-simple-shapes',
+      'pe-04-formulas',
+      'pe-05-missing-sides',
+      'pe-06-irregular',
+      'pe-07-compound',
+      'pe-08-units',
+      'pe-09-real-world',
+      'pe-10-estimation',
+      'pe-11-review'
+    ]
   },
 
   {
     id: 'basic-area',
     title: 'Basic area',
     blurb: 'Rectangles, triangles, and shapes made by joining them together.',
-    topics: []
+    topics: [
+      'ar-01-what-is',
+      'ar-02-square-units',
+      'ar-03-grids',
+      'ar-04-rectangles',
+      'ar-05-missing-dimensions',
+      'ar-06-triangles',
+      'ar-07-compound',
+      'ar-08-missing-areas',
+      'ar-09-unit-conversion',
+      'ar-10-vs-perimeter',
+      'ar-11-real-world',
+      'ar-12-estimation',
+      'ar-13-review'
+    ]
   },
 
   {
     id: 'probability',
     title: 'Probability',
     blurb: 'Chance as a fraction, listing outcomes, and what "likely" actually means.',
-    topics: []
+    topics: [
+      'pb-01-what-is',
+      'pb-02-vocabulary',
+      'pb-03-scale',
+      'pb-04-likelihood',
+      'pb-05-outcomes',
+      'pb-06-as-a-fraction',
+      'pb-07-experimental',
+      'pb-08-theoretical',
+      'pb-09-tables',
+      'pb-10-complementary',
+      'pb-11-comparing',
+      'pb-12-real-world',
+      'pb-13-misconceptions',
+      'pb-14-review'
+    ]
   }
 
 ];

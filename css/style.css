@@ -554,6 +554,37 @@ a.ucard:active { background: var(--surface-2); }
 .ex-table td.ex-pad { width: var(--s5); }
 .ex-table tr.ex-gap td { padding: 0; height: var(--s3); }
 
+/* Diagrams. Shapes are drawn as inline SVG using the class vocabulary
+   below, so every colour resolves from the theme tokens. One drawing
+   works in dark, in light and on paper without being redrawn. */
+.fig { margin: 0 0 var(--s4); }
+
+.fig-svg {
+  background: var(--surface);
+  border: var(--border) solid var(--line);
+  border-left: var(--rail) solid var(--primary);
+  padding: var(--s4);
+}
+
+.fig-svg svg { display: block; width: 100%; height: auto; max-width: 24rem; margin: 0 auto; }
+
+.fig-cap {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  margin-top: var(--s2);
+}
+
+.fig .f-shape { fill: var(--surface-2); stroke: var(--primary); stroke-width: 2; }
+.fig .f-line  { fill: none; stroke: var(--text-2); stroke-width: 1.5; }
+.fig .f-dash  { fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.fig .f-mark  { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.fig .f-grid  { fill: none; stroke: var(--line); stroke-width: 1; }
+.fig .f-fill  { fill: var(--primary); fill-opacity: 0.3; stroke: none; }
+.fig .f-label { fill: var(--text); font-family: var(--font); font-size: 13px; }
+.fig .f-dim   { fill: var(--accent); font-family: var(--font); font-size: 13px; }
+.fig .f-mid   { text-anchor: middle; }
+.fig .f-end   { text-anchor: end; }
+
 .rule {
   background: var(--surface-2);
   border: var(--border) solid var(--line);
@@ -781,6 +812,13 @@ a.ucard:active { background: var(--surface-2); }
     border: 1px solid #999;
     break-inside: avoid;
   }
+
+  .fig-svg { background: #FFF; border: 1px solid #999; break-inside: avoid; }
+  .fig .f-shape { fill: #FFF; stroke: #333; }
+  .fig .f-line, .fig .f-dash, .fig .f-grid { stroke: #666; }
+  .fig .f-mark { stroke: #000; }
+  .fig .f-fill { fill: #000; fill-opacity: 0.15; }
+  .fig .f-label, .fig .f-dim, .fig-cap { fill: #000; color: #000; }
 
   .oneidea { background: #FFF; border: 1px solid #999; border-left: 3px solid #333; }
   h1, h2, h3, p, td, .item .q, .oneidea p { color: #000; }

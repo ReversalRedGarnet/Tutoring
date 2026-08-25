@@ -353,6 +353,8 @@ var Views = (function () {
         h += '<p>' + esc(para) + '</p>';
       });
 
+      if (sec.figure) h += figure(sec.figure);
+
       if (sec.list && sec.list.length) {
         h += '<ul class="plainlist">';
         sec.list.forEach(function (li) { h += '<li>' + esc(li) + '</li>'; });
@@ -373,6 +375,30 @@ var Views = (function () {
       h += '</section>';
     });
     return h;
+  }
+
+  /* Diagrams. Perimeter and area are the units where the shape is the
+     lesson, and the example table cannot draw one — it splits on runs
+     of spaces, so anything drawn with characters comes apart.
+
+     `svg` is inline SVG authored in the topic files. It is inserted as
+     markup rather than escaped, which is the entire point of the field.
+     Nothing from a learner ever reaches it. The caption is escaped and
+     doubles as the accessible name, so a shape is never a silent gap
+     for anyone reading with the sound on.
+
+     Colour comes from classes styled in style.css — f-shape, f-line,
+     f-dash, f-mark, f-grid, f-fill, f-label, f-dim — never from
+     hardcoded fills, so one drawing serves both themes and print. */
+  function figure(fig) {
+    if (!fig || !fig.svg) return '';
+    var cap = fig.caption || '';
+    return '<figure class="fig">' +
+             '<div class="fig-svg"' +
+               (cap ? ' role="img" aria-label="' + esc(cap) + '"' : ' aria-hidden="true"') +
+             '>' + fig.svg + '</div>' +
+             (cap ? '<figcaption class="fig-cap">' + esc(cap) + '</figcaption>' : '') +
+           '</figure>';
   }
 
   /* Worked examples are authored as space-aligned text. Verdana is
