@@ -35,6 +35,14 @@
   --border: 1px;
   --rail:   3px;
 
+  /* --- corners: softened, not rounded ---
+     Enough to take the admin-panel edge off, not enough to turn the
+     site into a generic rounded-card app. Two steps only: --radius for
+     surfaces, --radius-sm for controls and small chips. Anything that
+     should stay sharp simply does not reference these. */
+  --radius:    8px;
+  --radius-sm: 6px;
+
   /* --- dark theme (default) ---
      Primary teal, amber accent, and nothing else. The teal is muted
      rather than neon on purpose. */
@@ -299,8 +307,12 @@ a:hover { color: var(--primary-h); }
   color: var(--primary);
   text-decoration: none;
   cursor: pointer;
+  border-radius: var(--radius-sm);
   transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
+
+/* The one action the dashboard wants a learner to take. */
+.btn-lg { font-size: var(--fs-md); padding: var(--s3) var(--s5); }
 
 .btn:hover { background: var(--surface-2); color: var(--primary-h); border-color: var(--primary-h); }
 .btn:active { background: var(--surface); }
@@ -335,6 +347,7 @@ a:hover { color: var(--primary-h); }
 .card, .panel {
   background: var(--surface);
   border: var(--border) solid var(--line);
+  border-radius: var(--radius);
   padding: var(--s4);
   margin: 0 0 var(--s4);
 }
@@ -358,6 +371,7 @@ a:hover { color: var(--primary-h); }
   width: 100%;
   padding: var(--s2) var(--s3);
   border: var(--border) solid var(--line);
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--text);
 }
@@ -408,6 +422,70 @@ a:hover { color: var(--primary-h); }
 /* ============================================================
    Dashboard
    ============================================================ */
+/* ============================================================
+   Dashboard hero — the one thing to do next
+   ============================================================ */
+
+/* The strongest element on the page, and the only one with a full
+   teal border. Everything else on the dashboard sits inside a --line
+   border, so this reads as primary without needing a shadow, a
+   gradient or a larger surface than it earns. */
+.resume { margin: 0 0 var(--s6); }
+
+.resume-greet {
+  margin: 0 0 var(--s4);
+  line-height: var(--lh-tight);
+}
+
+.resume-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s5);
+  background: var(--surface);
+  border: var(--border) solid var(--primary);
+  border-radius: var(--radius);
+}
+
+/* The prerequisite mark again, as a watermark. Same glyph as the
+   header and the ladder rail — the hero borrows the site's existing
+   motif rather than introducing decoration of its own. */
+.resume-mark {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+  width: 4rem;
+  height: 4rem;
+  color: var(--primary);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.resume-label {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.resume-topic {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+}
+
+.resume-where { font-size: var(--fs-sm); color: var(--text-2); }
+
+.resume-idea {
+  margin: var(--s2) 0 0;
+  max-width: 42ch;
+  color: var(--text);
+}
+
+.resume-card .btnrow { margin-top: var(--s4); }
+
 .ugrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
@@ -420,14 +498,16 @@ a:hover { color: var(--primary-h); }
   gap: var(--s2);
   padding: var(--s4);
   border: var(--border) solid var(--line);
+  border-radius: var(--radius);
   background: var(--bg);
   text-decoration: none;
   color: var(--text);
-  transition: border-color 0.12s ease;
+  /* transform and colour only — nothing here triggers layout. */
+  transition: border-color 0.12s ease, transform 0.12s ease;
 }
 
-a.ucard:hover { border-color: var(--primary); }
-a.ucard:active { background: var(--surface-2); }
+a.ucard:hover { border-color: var(--primary); transform: translateY(-2px); }
+a.ucard:active { background: var(--surface-2); transform: none; }
 
 .ucard-title { font-size: var(--fs-lg); font-weight: 700; line-height: var(--lh-tight); }
 .ucard-blurb { flex: 1 1 auto; font-size: var(--fs-sm); color: var(--text-2); }
@@ -514,6 +594,7 @@ a.ucard:active { background: var(--surface-2); }
   border-left: var(--rail) solid var(--primary);
   padding: var(--s4);
   margin: 0 0 var(--s5);
+  border-radius: var(--radius);
 }
 
 .oneidea p { font-size: var(--fs-lg); font-weight: 700; line-height: 1.4; margin: 0; }
@@ -537,6 +618,7 @@ a.ucard:active { background: var(--surface-2); }
   border-left: var(--rail) solid var(--primary);
   padding: var(--s3) var(--s4) var(--s4);
   margin: 0 0 var(--s4);
+  border-radius: var(--radius);
 }
 
 .example-label {
@@ -564,6 +646,7 @@ a.ucard:active { background: var(--surface-2); }
   border: var(--border) solid var(--line);
   border-left: var(--rail) solid var(--primary);
   padding: var(--s4);
+  border-radius: var(--radius);
 }
 
 .fig-svg svg { display: block; width: 100%; height: auto; max-width: 24rem; margin: 0 auto; }
@@ -591,6 +674,7 @@ a.ucard:active { background: var(--surface-2); }
   border-left: var(--rail) solid var(--accent);
   padding: var(--s3) var(--s4);
   margin: 0 0 var(--s4);
+  border-radius: var(--radius);
 }
 
 .rule-label {
@@ -620,6 +704,7 @@ a.ucard:active { background: var(--surface-2); }
   border-left: var(--rail) solid var(--accent);
   padding: var(--s3) var(--s4);
   margin: 0 0 var(--s3);
+  border-radius: var(--radius);
 }
 
 .careful p { margin: 0; }
@@ -631,6 +716,7 @@ a.ucard:active { background: var(--surface-2); }
   color: var(--text-2);
   border-left: 2px solid var(--line);
   padding-left: var(--s3);
+  border-radius: var(--radius);
 }
 
 /* Prerequisite rail */
@@ -665,6 +751,7 @@ a.ucard:active { background: var(--surface-2); }
   background: var(--surface);
   padding: var(--s4);
   margin: 0 0 var(--s3);
+  border-radius: var(--radius);
 }
 
 .item .q { font-size: var(--fs-lg); margin: 0 0 var(--s2); }
@@ -675,6 +762,7 @@ a.ucard:active { background: var(--surface-2); }
   padding: var(--s3) var(--s4);
   background: var(--surface-2);
   border: var(--border) solid var(--line);
+  border-radius: var(--radius);
 }
 
 .answer .label {
@@ -692,6 +780,7 @@ a.ucard:active { background: var(--surface-2); }
   background: var(--accent-bg);
   border: var(--border) solid var(--accent);
   font-size: var(--fs-sm);
+  border-radius: var(--radius);
 }
 
 /* Previous / next */
@@ -780,6 +869,14 @@ a.ucard:active { background: var(--surface-2); }
   .ugrid { grid-template-columns: 1fr; }
   .pgrid { gap: var(--s4); }
 
+  /* The hero keeps its hierarchy on a phone by shedding padding, not
+     by shrinking the thing it is pointing at. The watermark goes —
+     at this width it sits under the text rather than behind it. */
+  .resume { margin-bottom: var(--s5); }
+  .resume-card { padding: var(--s4); }
+  .resume-mark { display: none; }
+  .resume-card .btn-lg { width: 100%; text-align: center; }
+
   /* The lesson number and status move out of the way; the title gets
      the full width rather than a squeezed middle column. */
   .urow { flex-wrap: wrap; gap: var(--s2); }
@@ -799,7 +896,7 @@ a.ucard:active { background: var(--surface-2); }
    Print
    ============================================================ */
 @media print {
-  .topbar, .foot, .btnrow, .btn, .noprint,
+  .topbar, .foot, .btnrow, .btn, .noprint, .resume,
   .answer, .hintbox, .ladder, .pager,
   .panel-foot, .suggestbox, .themebtn { display: none !important; }
 

@@ -129,6 +129,72 @@ var Views = (function () {
     return panel('Topics', '<div class="ugrid">' + cards + '</div>', foot);
   }
 
+  /* --- the hero: who you are, and the one thing to do next ----
+     The dashboard used to open on a heading and a grid, which is a
+     fine admin screen and a poor welcome. This puts the single next
+     action at the top, above everything, so the page answers "what
+     am I doing today" before it offers any choices.
+
+     No new data: the target is the first unready-and-unfinished unit
+     in the learner's own order, exactly what the Progress panel was
+     already working out. That cell is now gone from the panel rather
+     than saying the same thing twice. */
+  function resumeHero(slug, units) {
+    var name = Auth.nameOf(slug) || '';
+    var L = Auth.record() || {};
+    var levels = (L.levels || []).join(', ');
+
+    var hr = new Date().getHours();
+    var greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+
+    var ready = units.filter(Units.isReady);
+    var target = null;
+
+    for (var i = 0; i < ready.length; i++) {
+      var p = Units.progress(slug, ready[i].id);
+      if (p.finished) continue;
+      target = { unit: ready[i], p: p, topic: Topics.get(p.nextId) };
+      break;
+    }
+
+    var body;
+
+    if (!ready.length) {
+      /* An empty screen is an invitation, not an apology. */
+      body = '<span class="resume-label">Nothing ready yet</span>' +
+             '<span class="resume-topic">Your units are still being written</span>' +
+             '<span class="resume-where">Ask below for anything you want covered</span>';
+
+    } else if (!target) {
+      body = '<span class="resume-label">You are up to date</span>' +
+             '<span class="resume-topic">Nothing left on your list</span>' +
+             '<span class="resume-where">Ask below if there is something to go over again</span>';
+
+    } else {
+      var on = target.p.started;
+      body = '<span class="resume-label">' + (on ? 'Carry on with' : 'Start with') + '</span>' +
+             '<span class="resume-topic">' + esc(target.topic.title) + '</span>' +
+             '<span class="resume-where">' + esc(target.unit.title) +
+               ' &middot; topic ' + (target.p.nextIndex + 1) + ' of ' + target.p.total + '</span>' +
+             '<p class="resume-idea">' + esc(target.topic.one_idea) + '</p>' +
+             '<div class="btnrow">' +
+               '<a class="btn btn-primary btn-lg" href="#/t/' + esc(target.topic.id) + '">' +
+                 (on ? 'Carry on' : 'Start') +
+               '</a>' +
+             '</div>';
+    }
+
+    return '<section class="resume">' +
+             '<p class="eyebrow">' + esc(name) +
+               (levels ? ' &middot; ' + esc(levels) : '') + '</p>' +
+             '<h1 class="resume-greet">' + greet + ', ' + esc(name) + '.</h1>' +
+             '<div class="resume-card">' +
+               '<svg class="resume-mark" aria-hidden="true" focusable="false"><use href="#mark"/></svg>' +
+               body +
+             '</div>' +
+           '</section>';
+  }
+
   /* --- where they are, and when ------------------------------ */
   function progressPanel(slug, units) {
     var signs = Store.signIns(slug);
@@ -136,34 +202,8 @@ var Views = (function () {
     var lastTopic = last ? Topics.get(last.id) : null;
     var lastUnit = last ? Units.of(last.id) : null;
 
-    /* "Where you are" points at the first unit with anything left. */
-    var whereBig = 'Nothing started yet';
-    var whereSmall = 'Open a topic to begin';
-
-    for (var i = 0; i < units.length; i++) {
-      if (!Units.isReady(units[i])) continue;
-      var p = Units.progress(slug, units[i].id);
-      if (p.finished) continue;
-      var nx = p.nextId ? Topics.get(p.nextId) : null;
-      whereBig = units[i].title;
-      whereSmall = 'Topic ' + (p.nextIndex + 1) + ' of ' + p.total +
-                   (nx ? ' — ' + nx.title : '');
-      break;
-    }
-
-    /* [].every() is true, so this needs at least one ready unit before
-       it can claim everything is finished. Without the length check a
-       learner whose units are all placeholders was told "All done". */
-    var ready = units.filter(Units.isReady);
-    if (ready.length && ready.every(function (u) {
-      return Units.progress(slug, u.id).finished;
-    })) {
-      whereBig = 'All done';
-      whereSmall = 'Nothing left on your list';
-    } else if (!ready.length) {
-      whereBig = 'Nothing ready yet';
-      whereSmall = 'Your units are still being written';
-    }
+    /* "Where you are" used to live here. It is the hero now — saying
+       it twice on one screen made neither copy feel like the answer. */
 
     var body = '<div class="pgrid">' +
 
@@ -182,12 +222,6 @@ var Views = (function () {
         '<span class="pcell-small">' +
           esc(last ? ((lastUnit ? lastUnit.title + ' — ' : '') + (fmtDate(last.at) || ''))
                    : 'Your first topic is waiting') + '</span>' +
-      '</div>' +
-
-      '<div class="pcell">' +
-        '<span class="pcell-label">Where you are</span>' +
-        '<span class="pcell-big">' + esc(whereBig) + '</span>' +
-        '<span class="pcell-small">' + esc(whereSmall) + '</span>' +
       '</div>' +
 
     '</div>';
@@ -218,13 +252,9 @@ var Views = (function () {
 
     var units = Units.forLearner(L);
 
-    var html = '<p class="eyebrow">' + esc(Auth.nameOf(slug)) + ' &middot; ' +
-               esc((L.levels || []).join(', ')) + '</p>' +
-               '<h1>Your topics</h1>';
+    var html = resumeHero(slug, units);
 
     if (!units.length) {
-      html += '<p class="muted">Nothing is on your list yet. That is not a mistake — ' +
-              'it just means the next thing is still being written.</p>';
       html += suggestPanel(slug);
       return html;
     }

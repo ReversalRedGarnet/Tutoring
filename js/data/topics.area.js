@@ -155,7 +155,7 @@ window.TOPICS.push(
       p: ['Draw the shape on a grid where each square is one unit, then count. Slow, but it always works and it never needs remembering.'],
       figure: {
         caption: 'A grid with a rectangle covering four squares across and three squares down, shaded, making twelve squares in total.',
-        svg: '<svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg"><rect class="f-fill" x="30" y="30" width="120" height="90"/><g class="f-grid"><path d="M30 30h180v150H30z"/><path d="M60 30v150M90 30v150M120 30v150M150 30v150M180 30v150"/><path d="M30 60h180M30 90h180M30 120h180M30 150h180"/></g><path class="f-shape" style="fill:none" d="M30 30h120v90H30z"/><text class="f-dim f-mid" x="90" y="140">12 squares</text></svg>'
+        svg: '<svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg"><rect class="f-fill" x="30" y="30" width="120" height="90"/><g class="f-grid"><path d="M30 30h180v150H30z"/><path d="M60 30v150M90 30v150M120 30v150M150 30v150M180 30v150"/><path d="M30 60h180M30 90h180M30 120h180M30 150h180"/></g><path class="f-shape" style="fill:none" d="M30 30h120v90H30z"/><text class="f-dim f-mid" x="90" y="196">12 squares</text></svg>'
       },
       example: {
         label: 'Example',
@@ -355,7 +355,7 @@ window.TOPICS.push(
       p: ['Draw a rectangle around a triangle so the triangle sits on the bottom and reaches the top. The triangle takes exactly half the rectangle every time.'],
       figure: {
         caption: 'A triangle inside a dashed rectangle. The triangle sits on the base and its point touches the top edge, filling half the rectangle.',
-        svg: '<svg viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg"><path class="f-dash" d="M60 40h180v100H60z"/><path class="f-shape" d="M60 140h180L150 40z"/><path class="f-fill" d="M60 140h180L150 40z"/><path class="f-dash" d="M150 40v100"/><text class="f-label f-mid" x="150" y="162">base 9 cm</text><text class="f-label" x="158" y="95">height 5 cm</text></svg>'
+        svg: '<svg viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg"><path class="f-dash" d="M60 40h180v100H60z"/><path class="f-shape" d="M60 140h180L150 40z"/><path class="f-fill" d="M60 140h180L150 40z"/><path class="f-dash" d="M150 40v100"/><text class="f-label f-mid" x="150" y="162">base 9 cm</text><text class="f-label f-end" x="144" y="95">height 5 cm</text></svg>'
       },
       example: {
         label: 'Example',
@@ -487,7 +487,7 @@ window.TOPICS.push(
       p: ['Instead of splitting a shape into pieces and adding, you can imagine the whole rectangle it came from and take away what is missing. Some shapes are much easier this way.'],
       figure: {
         caption: 'A large rectangle with a smaller rectangle cut out of one corner, the cut-out shown dashed.',
-        svg: '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect class="f-shape" x="40" y="35" width="220" height="120"/><rect class="f-fill" x="40" y="35" width="220" height="120"/><rect class="f-dash" x="180" y="35" width="80" height="55" style="fill:var(--bg)"/><g class="f-label"><text class="f-mid" x="150" y="27">11 cm</text><text x="270" y="100">6 cm</text><text class="f-mid" x="220" y="68">cut out</text></g></svg>'
+        svg: '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect class="f-shape" x="40" y="35" width="220" height="120"/><rect class="f-fill" x="40" y="35" width="220" height="120"/><rect class="f-dash" x="180" y="35" width="80" height="60" style="fill:var(--bg)"/><g class="f-label"><text class="f-mid" x="150" y="27">11 cm</text><text x="270" y="100">6 cm</text><text class="f-mid" x="220" y="62">cut out</text><text class="f-mid" x="220" y="80">4 by 3</text></g></svg>'
       },
       example: {
         label: 'Example',
@@ -544,7 +544,7 @@ window.TOPICS.push(
       p: ['A square metre is a square one metre on every side. That is 100 cm across and 100 cm down, so it holds 100 rows of 100 little squares.'],
       figure: {
         caption: 'One square metre drawn as a grid, 100 cm across and 100 cm down, holding ten thousand square centimetres.',
-        svg: '<svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg"><rect class="f-shape" x="45" y="35" width="150" height="120"/><g class="f-grid"><path d="M75 35v120M105 35v120M135 35v120M165 35v120"/><path d="M45 65h150M45 95h150M45 125h150"/></g><text class="f-label f-mid" x="120" y="27">100 cm</text><text class="f-label f-end" x="37" y="100">100 cm</text><text class="f-dim f-mid" x="120" y="178">100 x 100 = 10 000 cm2</text></svg>'
+        svg: '<svg viewBox="0 0 270 200" xmlns="http://www.w3.org/2000/svg"><rect class="f-shape" x="75" y="35" width="150" height="120"/><g class="f-grid"><path d="M105 35v120M135 35v120M165 35v120M195 35v120"/><path d="M75 65h150M75 95h150M75 125h150"/></g><text class="f-label f-mid" x="150" y="27">100 cm</text><text class="f-label f-end" x="67" y="100">100 cm</text><text class="f-dim f-mid" x="145" y="178">100 x 100 = 10 000 cm2</text></svg>'
       },
       example: {
         label: 'Example',
