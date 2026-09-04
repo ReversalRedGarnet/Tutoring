@@ -2,10 +2,16 @@
    app.js — hash router + one delegated click handler.
 
    Routes:
-     #/            pick a learner
-     #/k/<slug>    that learner's session
+     #/            sign in
+     #/k/<slug>    that learner's dashboard
+     #/u/<id>      one unit, its topics in order
      #/t/<id>      one topic
-     #/map         the whole library
+     #/map         everything on the learner's list
+
+   Anything else renders "not found" and leaves the session alone. It
+   used to fall through to the sign-in branch, which called Auth.lock()
+   — so a single mistyped character in the address bar silently logged
+   the learner out and lost their place.
    ------------------------------------------------------------------ */
 
 (function () {
@@ -14,6 +20,8 @@
   var nav = document.getElementById('topnav');
   var current = { slug: null };
   var loginFailed = false;
+  var lastName = '';
+  var intended = null;   /* where they were headed before being asked to sign in */
 
   var LAST_KEY = 'study:last-slug';
   var THEME_KEY = 'study:theme';
@@ -67,17 +75,43 @@
     nav.innerHTML = bits.join('');
   }
 
+  /* Every signed-in route needs the same three lines. Returns false and
+     parks the destination if the session is not open. */
+  function requireSession(hash) {
+    if (!current.slug) current.slug = recallSlug();
+    if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
+    if (current.slug) return true;
+    intended = hash;
+    location.hash = '#/';
+    return false;
+  }
+
   function route() {
-    var hash = (location.hash || '#/').replace(/^#/, '');
+    var raw = location.hash || '#/';
+
+    /* Routes all start with a slash. A bare fragment like #view is an
+       ordinary in-page anchor — the skip link uses one — so let the
+       browser handle it and do not re-render the page underneath it. */
+    if (raw !== '' && raw !== '#' && raw.charAt(1) !== '/') return;
+
+    var hash = raw.replace(/^#/, '');
     var parts = hash.split('/').filter(Boolean);
     var html;
     /* Card grids and list rows get the wider measure; lesson prose does
        not, because long lines of body text are harder to track. */
     var wide = parts[0] === 'k' || parts[0] === 'u' || parts[0] === 'map';
 
-    if (parts[0] === 'k' && parts[1]) {
+    if (!parts.length) {
+      Auth.lock();
+      rememberSlug(null);
+      html = Views.login(loginFailed, lastName);
+      loginFailed = false;
+      document.title = 'Study';
+
+    } else if (parts[0] === 'k' && parts[1]) {
       var slug = parts[1];
       if (!Auth.isUnlocked(slug)) {
+        intended = hash;
         location.hash = '#/';
         return;
       }
@@ -86,36 +120,27 @@
       document.title = Auth.nameOf(slug) + ' — Study';
 
     } else if (parts[0] === 'u' && parts[1]) {
-      if (!current.slug) current.slug = recallSlug();
-      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
-      if (!current.slug) { location.hash = '#/'; return; }
+      if (!requireSession(hash)) return;
       html = Views.unit(parts[1], current.slug);
       var u = Units.get(parts[1]);
       document.title = (u ? u.title : 'Unit') + ' — Study';
 
     } else if (parts[0] === 't' && parts[1]) {
-      if (!current.slug) current.slug = recallSlug();
-      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
-      if (!current.slug) { location.hash = '#/'; return; }
+      if (!requireSession(hash)) return;
       html = Views.topic(parts[1], current.slug);
       var t = Topics.get(parts[1]);
       document.title = (t ? t.title : 'Topic') + ' — Study';
 
     } else if (parts[0] === 'map') {
-      if (!current.slug) current.slug = recallSlug();
-      if (current.slug && !Auth.isUnlocked(current.slug)) current.slug = null;
-      if (!current.slug) { location.hash = '#/'; return; }
+      if (!requireSession(hash)) return;
       html = Views.map(current.slug);
       document.title = 'Topic map — Study';
 
     } else {
-      Auth.lock();
-      rememberSlug(null);
-      html = Views.login(loginFailed);
-      loginFailed = false;
-      document.title = 'Study';
+      /* Unknown address. Say so, keep the session, offer a way back. */
+      html = Views.notFound(current.slug);
+      document.title = 'Not found — Study';
     }
-
 
     view.innerHTML = html;
     view.classList.toggle('is-wide', wide);
@@ -170,9 +195,15 @@
       return;
     }
 
+    /* Finishing a topic used to jump to the dashboard, two levels up,
+       which is a long way to be thrown for pressing a button that says
+       "finished this one". The unit page is one level up, already shows
+       what is next, and does not require re-reading the whole screen. */
     if (act === 'done' && current.slug) {
-      Store.markDone(current.slug, btn.getAttribute('data-topic'));
-      location.hash = '#/k/' + current.slug;
+      var tid = btn.getAttribute('data-topic');
+      Store.markDone(current.slug, tid);
+      var parent = Units.of(tid);
+      location.hash = parent ? '#/u/' + parent.id : '#/k/' + current.slug;
       return;
     }
 
@@ -187,15 +218,36 @@
       return;
     }
 
+    if (act === 'peek') {
+      var code = view.querySelector('#lcode');
+      if (!code) return;
+      var showing = code.type === 'text';
+      code.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'Show' : 'Hide';
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+      code.focus();
+      return;
+    }
+
     if (act === 'theme') {
       setTheme(currentTheme() === 'light' ? 'dark' : 'light');
       renderNav();
       return;
     }
 
+    /* Was querying '.tcard', a class that no longer exists anywhere in
+       the codebase — the button rendered and did nothing. */
     if (act === 'showmore') {
-      view.querySelectorAll('.tcard.is-hidden').forEach(function (c) {
+      view.querySelectorAll('.ucard.is-hidden').forEach(function (c) {
         c.classList.remove('is-hidden');
+      });
+      btn.remove();
+      return;
+    }
+
+    if (act === 'unfold') {
+      view.querySelectorAll('.urow.is-folded').forEach(function (r) {
+        r.classList.remove('is-folded');
       });
       btn.remove();
       return;
@@ -256,6 +308,7 @@
     if (!name || !code) return;
 
     if (!name.value) { name.focus(); return; }
+    lastName = name.value;
 
     /* Key derivation is deliberately slow, so say something first. */
     var btn = view.querySelector('[data-act="login"]');
@@ -266,7 +319,15 @@
       if (slug) {
         loginFailed = false;
         Store.recordSignIn(slug);
-        location.hash = '#/k/' + slug;
+        rememberSlug(slug);
+
+        /* Send them where they were trying to go, if that was somewhere
+           in particular. A deep link into a topic should survive being
+           asked to sign in on the way. */
+        var go = intended;
+        intended = null;
+        location.hash = go ? '#' + go : '#/k/' + slug;
+        if (go) route();
       } else {
         loginFailed = true;
         route();
@@ -288,28 +349,65 @@
     doLogin();
   });
 
+  /* One input handler, not the three near-identical ones that had
+     accumulated here — two of them registered twice, so every
+     keystroke in the suggestion box wrote to storage three times. */
+  view.addEventListener('input', function (ev) {
+    var el = ev.target;
+
+    if (el.id === 'suggestbox') {
+      if (current.slug) Store.saveDraft(current.slug, el.value);
+      return;
+    }
+
+    if (el.getAttribute && el.getAttribute('data-role') === 'scratch') {
+      var box = el.closest('.item');
+      if (current.slug && box) {
+        Store.saveScratch(current.slug, box.getAttribute('data-key'), el.value);
+      }
+      return;
+    }
+
+    if (el.id === 'tfind') {
+      filterMap(el.value);
+      return;
+    }
+  });
+
   /* Picking a name jumps straight to the password box. */
-  view.addEventListener('input', function (ev) {
-    if (ev.target.id !== 'suggestbox' || !current.slug) return;
-    Store.saveDraft(current.slug, ev.target.value);
-  });
-
   view.addEventListener('change', function (ev) {
     if (ev.target.id !== 'lname' || !ev.target.value) return;
+    lastName = ev.target.value;
     var code = view.querySelector('#lcode');
     if (code) code.focus();
   });
 
-  view.addEventListener('input', function (ev) {
-    if (ev.target.id !== 'suggestbox' || !current.slug) return;
-    Store.saveDraft(current.slug, ev.target.value);
-  });
+  /* Plain substring filter over the map. Hiding rows rather than
+     rebuilding the list keeps the scroll position and costs nothing. */
+  function filterMap(term) {
+    var q = String(term || '').trim().toLowerCase();
+    var shown = 0;
 
-  view.addEventListener('change', function (ev) {
-    if (ev.target.id !== 'lname' || !ev.target.value) return;
-    var code = view.querySelector('#lcode');
-    if (code) code.focus();
-  });
+    view.querySelectorAll('[data-role="maprow"]').forEach(function (row) {
+      var hit = !q || row.getAttribute('data-find').indexOf(q) >= 0;
+      row.classList.toggle('hidden', !hit);
+      if (hit) shown++;
+    });
+
+    /* A unit heading with nothing under it is noise. */
+    view.querySelectorAll('[data-role="mapunit"]').forEach(function (block) {
+      var any = block.querySelector('[data-role="maprow"]:not(.hidden)');
+      block.classList.toggle('hidden', !any);
+    });
+
+    var count = view.querySelector('[data-role="findcount"]');
+    if (count) {
+      count.textContent = !q ? ''
+        : shown === 0 ? 'Nothing matches that word.'
+        : shown === 1 ? '1 topic'
+        : shown + ' topics';
+    }
+  }
 
   nav.addEventListener('click', function (ev) {
     var btn = ev.target.closest('[data-act="theme"]');

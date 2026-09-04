@@ -37,10 +37,15 @@ var Views = (function () {
   /* ---------------------------------------------------------- */
   /* Landing: pick a name, type a password                       */
   /* ---------------------------------------------------------- */
-  function login(failed) {
+  function login(failed, chosen) {
+    /* Re-selecting the name after a wrong password is not a nicety.
+       The dropdown resetting to "Choose your name" reads as though the
+       whole attempt was rejected, and a child who mistypes twice will
+       conclude the site has forgotten them. */
     var opts = ['<option value="">Choose your name</option>'].concat(
       Auth.roster().map(function (r) {
-        return '<option value="' + esc(r.slug) + '">' + esc(r.name) + '</option>';
+        return '<option value="' + esc(r.slug) + '"' +
+               (r.slug === chosen ? ' selected' : '') + '>' + esc(r.name) + '</option>';
       })
     ).join('');
 
@@ -49,23 +54,39 @@ var Views = (function () {
         '<h1>Who is working today?</h1>' +
         '<div class="field">' +
           '<label for="lname">Your name</label>' +
-          '<select id="lname" class="textfield select">' + opts + '</select>' +
+          '<select id="lname" class="textfield select field-control">' + opts + '</select>' +
         '</div>' +
         '<div class="field">' +
           '<label for="lcode">Your password</label>' +
-          '<input id="lcode" class="textfield code" type="password" autocomplete="off" ' +
-            'autocapitalize="off" spellcheck="false">' +
+          '<div class="codewrap">' +
+            '<input id="lcode" class="textfield code field-control" type="password" ' +
+              'autocomplete="off" autocapitalize="off" spellcheck="false">' +
+            '<button class="peek" type="button" data-act="peek" ' +
+              'aria-label="Show password">Show</button>' +
+          '</div>' +
         '</div>' +
-        (failed ? '<p class="gate-again">That is not quite right. Try again.</p>' : '') +
+        (failed ? '<p class="gate-again" role="alert">That is not quite right. ' +
+                  'Check the spelling and try again.</p>' : '') +
         '<div class="btnrow">' +
           '<button class="btn btn-primary" type="button" data-act="login">Let us begin</button>' +
         '</div>' +
       '</div>';
   }
 
-  function notFound() {
-    return '<h1>No such name</h1>' +
-           '<p><a href="#/">Go back and pick one</a>.</p>';
+  /* Reached from a mistyped address as well as a missing record, so it
+     has to work whether or not somebody is signed in. */
+  function notFound(slug) {
+    return '<h1>That page is not here</h1>' +
+           '<p class="muted">The address may have been mistyped, or the ' +
+             'topic may have been renamed.</p>' +
+           (slug
+             ? '<div class="btnrow">' +
+                 '<a class="btn btn-primary" href="#/k/' + esc(slug) + '">Back to your dashboard</a>' +
+                 '<a class="btn btn-quiet" href="#/map">See everything on your list</a>' +
+               '</div>'
+             : '<div class="btnrow">' +
+                 '<a class="btn btn-primary" href="#/">Go to sign in</a>' +
+               '</div>');
   }
 
   /* ---------------------------------------------------------- */
@@ -300,14 +321,27 @@ var Views = (function () {
               '</div>';
     }
 
+    /* A seventeen-topic unit printed in full is the single biggest
+       source of "this is a lot" on the whole site. Everything finished,
+       the next one, and the three after it stay visible; the rest fold
+       away behind one button. Nothing is removed — a learner who wants
+       the whole map is one click from it, and the print stylesheet
+       unfolds it anyway. */
+    var AHEAD = 3;
+    var lastOpen = p.finished ? (p.total - 1) : (p.nextIndex + AHEAD);
+    var folded = 0;
+
     html += '<ol class="ulist">';
     (u.topics || []).forEach(function (id, i) {
       var t = Topics.get(id);
       if (!t) return;
       var done = slug && Store.isDone(slug, id);
       var isNext = i === p.nextIndex;
+      var fold = !done && !isNext && i > lastOpen;
+      if (fold) folded++;
 
-      html += '<li class="urow' + (done ? ' is-done' : '') + (isNext ? ' is-next' : '') + '">' +
+      html += '<li class="urow' + (done ? ' is-done' : '') +
+                (isNext ? ' is-next' : '') + (fold ? ' is-folded' : '') + '">' +
                 '<span class="urow-num">' + (i + 1) + '</span>' +
                 '<a class="urow-main" href="#/t/' + esc(id) + '">' +
                   '<span class="urow-title">' + esc(t.title) + '</span>' +
@@ -319,6 +353,13 @@ var Views = (function () {
               '</li>';
     });
     html += '</ol>';
+
+    if (folded) {
+      html += '<div class="btnrow noprint">' +
+                '<button class="btn btn-quiet" type="button" data-act="unfold">' +
+                  'Show the other ' + folded + '</button>' +
+              '</div>';
+    }
 
     return html;
   }
@@ -335,7 +376,8 @@ var Views = (function () {
     h += '<p class="q">' + esc(o.q) + '</p>';
 
     if (o.scratch !== false) {
-      h += '<textarea class="scratch" aria-label="Your working" placeholder="Working out"></textarea>';
+      h += '<textarea class="scratch" data-role="scratch" aria-label="Your working" ' +
+             'placeholder="Working out">' + esc(Store.getScratch(o.slug, o.key)) + '</textarea>';
     }
 
     /* Stage 1 — commit before seeing anything */
@@ -368,6 +410,36 @@ var Views = (function () {
 
     h += '</div>';
     return h;
+  }
+
+  /* --- warm-up ------------------------------------------------
+     Three questions from earlier topics in the same unit, asked
+     before the new lesson starts. Collapsed by default: it is an
+     offer, not a gate, and a learner who is impatient to get on with
+     the topic should not have to scroll past a wall of old questions.
+
+     Same commit-then-reveal shape as practice, minus the working-out
+     box — these are meant to be answered out loud in a few seconds. */
+  function warmUp(id, slug) {
+    var items = Units.warmUp(slug, id, 3);
+    if (!items.length) return '';
+
+    var body = '';
+    items.forEach(function (w, i) {
+      body += item({
+        key: w.key, slug: slug, n: i + 1, from: w.from,
+        q: w.q, a: w.a, hint: null, scratch: false
+      });
+    });
+
+    return '<details class="warmup noprint">' +
+             '<summary class="warmup-head">' +
+               '<span class="warmup-label">Warm-up</span>' +
+               '<span class="warmup-sub">' + items.length +
+                 ' quick questions from earlier</span>' +
+             '</summary>' +
+             '<div class="warmup-body">' + body + '</div>' +
+           '</details>';
   }
 
   /* ---------------------------------------------------------- */
@@ -508,33 +580,54 @@ var Views = (function () {
     if (!t) return '<h1>Topic not found</h1><p><a href="#/">Back to the start</a></p>';
 
     var html = '';
+    var parent = Units.of(id);
 
-    /* the ladder rail — where this sits and what it stands on */
-    var chain = Topics.chain(id);
-    if (chain.length > 1) {
-      html += '<p class="eyebrow">Builds on</p><ul class="ladder">';
-      chain.forEach(function (cid) {
-        var c = Topics.get(cid);
-        if (!c) return;
-        var cls = cid === id ? 'here' : (slug && Store.isDone(slug, cid) ? 'done' : '');
-        html += '<li class="' + cls + '">' +
-                  (cid === id ? esc(c.title)
-                              : '<a href="#/t/' + esc(cid) + '">' + esc(c.title) + '</a>') +
-                '</li>';
-      });
-      html += '</ul>';
+    /* The header used to open with the ladder rail and then print the
+       raw level code — "AU-7" — next to the unit name. Neither helps
+       the person reading it. A learner wants to know where they are in
+       the unit; the level code is a filing detail that belongs on the
+       map. So: unit, position, title, one idea. The ladder moved below,
+       where it is useful without being the first thing on the page. */
+    var pos = '';
+    if (parent) {
+      var pi = (parent.topics || []).indexOf(id);
+      if (pi >= 0) pos = ' &middot; ' + (pi + 1) + ' of ' + parent.topics.length;
     }
 
-    var parent = Units.of(id);
     html += '<p class="eyebrow">' +
               (parent
-                ? '<a href="#/u/' + esc(parent.id) + '">' + esc(parent.title) + '</a> &middot; '
-                : '') +
-              esc((t.levels || []).join(', ')) +
+                ? '<a href="#/u/' + esc(parent.id) + '">' + esc(parent.title) + '</a>'
+                : 'Topic') + pos +
             '</p>';
     html += '<h1>' + esc(t.title) + '</h1>';
 
     html += '<div class="oneidea"><p>' + esc(t.one_idea) + '</p></div>';
+
+    /* the ladder rail — what this stands on. Collapsed, because on a
+       topic eight deep it is a long list and it is reference material,
+       not part of the lesson. */
+    var chain = Topics.chain(id);
+    if (chain.length > 1) {
+      var rail = '';
+      chain.forEach(function (cid) {
+        var c = Topics.get(cid);
+        if (!c) return;
+        var cls = cid === id ? 'here' : (slug && Store.isDone(slug, cid) ? 'done' : '');
+        rail += '<li class="' + cls + '">' +
+                  (cid === id ? esc(c.title)
+                              : '<a href="#/t/' + esc(cid) + '">' + esc(c.title) + '</a>') +
+                '</li>';
+      });
+      html += '<details class="builds noprint">' +
+                '<summary class="builds-head">Builds on ' +
+                  (chain.length - 1) + ' earlier ' +
+                  (chain.length === 2 ? 'topic' : 'topics') +
+                '</summary>' +
+                '<ul class="ladder">' + rail + '</ul>' +
+              '</details>';
+    }
+
+    html += warmUp(id, slug);
 
     if (t.sections && t.sections.length) {
       html += sections(t.sections);
@@ -616,35 +709,53 @@ var Views = (function () {
   /* ---------------------------------------------------------- */
   /* Map — the whole library, grouped by subject, sorted by depth */
   /* ---------------------------------------------------------- */
+  /* The map used to list every topic in the library grouped by subject
+     and sorted by dependency depth. With one subject and a hundred
+     topics that is one very long undifferentiated column, and the
+     indentation encoded information nobody was reading.
+
+     It is now the learner's own units, in their own order, with a
+     filter box on top. Everything is still reachable; you just do not
+     have to meet all of it at once. */
   function map(slug) {
-    var subjects = {};
-    Topics.all().forEach(function (t) {
-      (subjects[t.subject] = subjects[t.subject] || []).push(t);
-    });
+    var L = Auth.record() || {};
+    var mine = Units.forLearner(L).filter(Units.isReady);
 
-    var html = '<p class="eyebrow">Everything there is</p>' +
-               '<h1>Topic map</h1>' +
-               '<p class="muted">Indented topics stand on the ones above them. ' +
-               'If something new will not stick, look upward first.</p>';
+    var html = '<p class="eyebrow">Everything on your list</p>' +
+               '<h1>Topic map</h1>';
 
-    Object.keys(subjects).sort().forEach(function (s) {
-      var list = subjects[s].slice().sort(function (a, b) {
-        var d = Topics.depth(a.id) - Topics.depth(b.id);
-        return d !== 0 ? d : a.title.localeCompare(b.title);
-      });
+    if (!mine.length) {
+      return html + '<p class="muted">Nothing has been set for you yet.</p>' +
+             '<p><a href="#/k/' + esc(slug || '') + '">Back to your dashboard</a></p>';
+    }
 
-      html += '<div class="subjblock"><h2>' + esc(subjectName(s)) + '</h2><ul class="tlist">';
-      list.forEach(function (t) {
-        var d = Math.min(Topics.depth(t.id), 3);
-        var done = slug && Store.isDone(slug, t.id);
-        html += '<li class="depth-' + d + '">' +
-                  '<a href="#/t/' + esc(t.id) + '">' + esc(t.title) + '</a>' +
-                  '<span class="meta">' + esc((t.levels || []).join(' ')) +
-                    (t.tier === 'stub' ? ' &middot; stub' : '') +
+    html += '<div class="field findfield">' +
+              '<label for="tfind">Find a topic</label>' +
+              '<input id="tfind" class="textfield" type="search" ' +
+                'autocomplete="off" spellcheck="false" ' +
+                'placeholder="Type a word, for example: gradient">' +
+            '</div>' +
+            '<p class="findcount muted" data-role="findcount" aria-live="polite"></p>';
+
+    mine.forEach(function (u) {
+      html += '<div class="subjblock" data-role="mapunit">' +
+                '<h2><a href="#/u/' + esc(u.id) + '">' + esc(u.title) + '</a></h2>' +
+                '<ul class="tlist">';
+
+      (u.topics || []).forEach(function (id, i) {
+        var t = Topics.get(id);
+        if (!t) return;
+        var done = slug && Store.isDone(slug, id);
+        html += '<li data-role="maprow" data-find="' +
+                  esc((t.title + ' ' + (t.one_idea || '')).toLowerCase()) + '">' +
+                  '<a href="#/t/' + esc(id) + '">' +
+                    (i + 1) + '. ' + esc(t.title) + '</a>' +
+                  '<span class="meta">' + esc(t.one_idea || '') +
                     (done ? ' &middot; done' : '') +
                   '</span>' +
                 '</li>';
       });
+
       html += '</ul></div>';
     });
 

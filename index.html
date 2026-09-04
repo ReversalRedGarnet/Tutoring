@@ -19,6 +19,8 @@
 </head>
 <body>
 
+<a class="skip" href="#view">Skip to the page</a>
+
 <!-- The mark is the prerequisite graph itself: three nodes and the edge
      running through them. Same idea as the ladder rail on a topic. -->
 <svg class="svg-defs" aria-hidden="true" focusable="false">
@@ -40,7 +42,7 @@
   <div class="topbar-rule" aria-hidden="true"></div>
 </header>
 
-<main class="stage">
+<main class="stage" id="main">
   <div id="view" class="page" tabindex="-1"></div>
 </main>
 
@@ -60,14 +62,9 @@
         <a href="#/">Sign in</a>
       </div>
       <div class="foot-col">
-        <p class="foot-head">For parents</p>
-        <span class="foot-soon">Coming soon</span>
-        <span class="foot-soon">Coming soon</span>
-      </div>
-      <div class="foot-col">
-        <p class="foot-head">About</p>
-        <span class="foot-soon">Coming soon</span>
-        <span class="foot-soon">Coming soon</span>
+        <p class="foot-head">How this works</p>
+        <span class="foot-soon">One topic at a time, in order.</span>
+        <span class="foot-soon">No scores and no timers.</span>
       </div>
     </nav>
 
@@ -84,6 +81,10 @@
 <script src="js/data/topics.perimeter.js"></script>
 <script src="js/data/topics.area.js"></script>
 <script src="js/data/topics.probability.js"></script>
+<script src="js/data/topics.si6.js"></script>
+<script src="js/data/topics.si7.js"></script>
+<script src="js/data/topics.si9.js"></script>
+<script src="js/data/topics.si10.js"></script>
 <script src="js/data/units.js"></script>
 <script src="js/data/learners.js"></script>
 <script src="js/store.js"></script>

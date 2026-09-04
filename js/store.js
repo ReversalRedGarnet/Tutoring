@@ -99,6 +99,21 @@ var Store = (function () {
       return best;
     },
 
+    /* Working-out boxes keep what was typed in them, per item, so
+       clicking Previous to check something does not wipe the page.
+       Kept out of `marks` because this is content, not a signal. */
+    saveScratch: function (slug, key, text) {
+      var d = read(slug);
+      d.scratch = d.scratch || {};
+      if (text) d.scratch[key] = text; else delete d.scratch[key];
+      write(slug, d);
+    },
+
+    getScratch: function (slug, key) {
+      var s = read(slug).scratch;
+      return (s && s[key]) || '';
+    },
+
     /* The suggestion box keeps a draft so a half-typed thought is not
        lost when they navigate away. */
     saveDraft: function (slug, text) {
@@ -234,13 +249,24 @@ var Topics = (function () {
     return 1 + Math.max.apply(null, t.prereqs.map(depth));
   }
 
+  /* Plain substring search over title and one_idea. No ranking and no
+     fuzzy matching on purpose — a learner typing "fract" wants the
+     fraction topics, and anything cleverer would start guessing. */
+  function search(term) {
+    var q = String(term || '').trim().toLowerCase();
+    if (!q) return [];
+    return (window.TOPICS || []).filter(function (t) {
+      return (t.title + ' ' + (t.one_idea || '')).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
   return {
     all: function () { return window.TOPICS || []; },
     get: get,
     chain: chain,
     depth: depth,
     reindex: index,
-
+    search: search
   };
 })();
 
@@ -305,6 +331,44 @@ var Units = (function () {
     };
   }
 
+  /* Every topic file carries a `retrieval` array — two or three short
+     questions from that topic, written to be asked again later. Until
+     now nothing rendered them, so several hundred authored questions
+     were sitting unused in the data.
+
+     This picks a few from the topics already finished earlier in the
+     same unit, most recent first. Spacing is deliberately crude: the
+     point is that the warm-up is not from the lesson you are about to
+     do, so it is recall rather than reading ahead. Returns [] when
+     there is nothing behind this topic yet, and the view then renders
+     nothing at all. */
+  function warmUp(slug, topicId, want) {
+    want = want || 3;
+    var u = of(topicId);
+    if (!u || !slug) return [];
+
+    var ids = (u.topics || []);
+    var i = ids.indexOf(topicId);
+    if (i <= 0) return [];
+
+    var out = [];
+    for (var j = i - 1; j >= 0 && out.length < want; j--) {
+      if (!Store.isDone(slug, ids[j])) continue;
+      var t = Topics.get(ids[j]);
+      if (!t || !t.retrieval || !t.retrieval.length) continue;
+      for (var k = 0; k < t.retrieval.length && out.length < want; k++) {
+        out.push({
+          key: topicId + ':w:' + ids[j] + ':' + k,
+          from: t.title,
+          fromId: t.id,
+          q: t.retrieval[k].q,
+          a: t.retrieval[k].a
+        });
+      }
+    }
+    return out;
+  }
+
   return {
     all: all,
     get: get,
@@ -312,6 +376,7 @@ var Units = (function () {
     topicsOf: topicsOf,
     isReady: isReady,
     progress: progress,
+    warmUp: warmUp,
 
     /* The learner's own units, in their own order, skipping any id that
        no longer exists in the library. */

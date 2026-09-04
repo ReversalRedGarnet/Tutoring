@@ -856,6 +856,108 @@ a.ucard:active { background: var(--surface-2); transform: none; }
 .depth-3 { padding-left: calc(var(--s7) + var(--s5)); }
 
 /* ============================================================
+   Skip link — first thing in the tab order, invisible until used
+   ============================================================ */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--s3) var(--s4);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+  border-radius: 0 0 var(--radius) 0;
+}
+.skip:focus { left: 0; }
+
+/* ============================================================
+   Warm-up and "builds on" — both collapsed by default
+
+   These are offers, not gates. A learner who wants to get straight
+   into the lesson should not have to scroll past either of them, and
+   a learner who wants the recall practice is one click away.
+   ============================================================ */
+.warmup, .builds {
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin: 0 0 var(--s5);
+  padding: 0;
+}
+
+.warmup summary, .builds summary {
+  list-style: none;
+  cursor: pointer;
+  padding: var(--s3) var(--s4);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  border-radius: var(--radius);
+}
+.warmup summary::-webkit-details-marker,
+.builds summary::-webkit-details-marker { display: none; }
+
+.warmup summary:hover, .builds summary:hover { color: var(--primary); }
+.warmup summary:focus-visible,
+.builds summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.warmup summary::after, .builds summary::after {
+  content: "Show";
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.warmup[open] summary::after, .builds[open] summary::after { content: "Hide"; }
+
+.warmup-label {
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+.warmup-sub, .builds-head { font-size: var(--fs-sm); color: var(--text-2); }
+.builds-head { font-weight: 700; }
+
+.warmup-body { padding: 0 var(--s4) var(--s4); }
+.warmup-body .item { background: transparent; }
+
+.builds[open] .ladder { padding: 0 var(--s4) var(--s4); margin: 0; }
+
+/* ============================================================
+   Folded unit rows and the map filter
+   ============================================================ */
+.urow.is-folded { display: none; }
+
+.findfield { margin: 0 0 var(--s3); max-width: 26rem; }
+.findcount { margin: 0 0 var(--s5); font-size: var(--fs-sm); min-height: 1.2em; }
+
+/* ============================================================
+   Show / hide password
+   ============================================================ */
+.codewrap { position: relative; display: flex; align-items: stretch; }
+.codewrap .textfield { flex: 1 1 auto; padding-right: 4.5rem; }
+
+.peek {
+  position: absolute;
+  right: var(--s2);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-2);
+  padding: var(--s2);
+}
+.peek:hover { color: var(--primary); }
+.peek:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ============================================================
    Narrow screens — laid out for the screen, not stacked desktop
    ============================================================ */
 @media (max-width: 40rem) {
@@ -897,8 +999,13 @@ a.ucard:active { background: var(--surface-2); transform: none; }
    ============================================================ */
 @media print {
   .topbar, .foot, .btnrow, .btn, .noprint, .resume,
-  .answer, .hintbox, .ladder, .pager,
+  .answer, .hintbox, .ladder, .pager, .warmup, .builds,
+  .findfield, .findcount,
   .panel-foot, .suggestbox, .themebtn { display: none !important; }
+
+  /* A printed worksheet is not interactive, so a folded row is just a
+     missing row. Everything comes back on paper. */
+  .urow.is-folded { display: flex !important; }
 
   body { background: #FFF; color: #000; font-size: 11pt; display: block; min-height: 0; }
   .stage { display: block; }

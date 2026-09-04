@@ -18,11 +18,23 @@ modules, so it works from `file://` as well as over HTTP.
 
 ## Read this before pushing anything
 
-**As of this writing the GitHub repo is public and `private/` has been
-committed.** Both need fixing before any real name goes near this.
+**As of this writing the GitHub repo is reachable without credentials
+and `private/` has been committed.** Both need fixing before any real
+name goes near this.
+
+**Why it happened:** the ignore file in the repository root was named
+`gitignore`, without the leading dot. Git only reads `.gitignore`. The
+file was well written, correctly excluded `private/`, and had never once
+been consulted. It is renamed in this revision — check that the copy in
+your repo is `.gitignore` and that the old `gitignore` is deleted, or
+the same thing happens again silently.
+
+**The passwords in `private/learners.source.js` have been rotated** for
+that reason. Tell each learner their new one. The old set should be
+treated as public permanently.
 
 1. **Make the repo private.** Settings → General → Danger Zone.
-2. **Stop tracking the plaintext.** `.gitignore` now excludes `private/`,
+2. **Stop tracking the plaintext.** `.gitignore` excludes `private/`,
    but a `.gitignore` never removes what is already tracked:
 
    ```
@@ -52,6 +64,7 @@ them in the clear, and a dropdown is not compulsory.
 ```
 index.html                  shell, header, footer, script order
 .gitignore                  keeps private/ out of the repo
+                            (the dot is not optional — see above)
 
 css/style.css               all styling, all design tokens
 
@@ -107,11 +120,22 @@ is worse than one that says plainly it is not ready.
 | `#/k/<slug>`     | learner dashboard                         |
 | `#/u/<unit>`     | unit page — the lesson list               |
 | `#/t/<topic>`    | a lesson                                  |
-| `#/map`          | the prerequisite graph                    |
+| `#/map`          | the learner's units, with a filter box     |
 
-Every content route redirects to `#/` when nobody is signed in. Signing
-out clears the decrypted record from `sessionStorage`, so the back
-button lands on the login screen rather than a stale page.
+Every content route redirects to `#/` when nobody is signed in, and
+**remembers where you were going** — sign in and you land on the topic
+you followed a link to, not on the dashboard. Signing out clears the
+decrypted record from `sessionStorage`, so the back button lands on the
+login screen rather than a stale page.
+
+Anything that is not one of those five renders a "that page is not here"
+screen **without touching the session**. It used to fall through to the
+login branch, which called `Auth.lock()` — so one mistyped character in
+the address bar quietly signed the learner out.
+
+A fragment that does not begin with `/` is left alone entirely, so the
+skip link's `#view` behaves as an ordinary in-page anchor instead of
+being read as a route.
 
 ---
 
@@ -219,28 +243,58 @@ see it.
 
 ## Content
 
-Six units, all written, all at `taught` tier.
+Ten units, all written, all at `taught` tier.
 
-| Unit        | Topics | Practice | Retrieval | Guards | Figures |
-| ----------- | -----: | -------: | --------: | -----: | ------: |
-| Fractions   |     17 |       89 |        31 |     15 |       0 |
-| Decimals    |     16 |       88 |        29 |     17 |       0 |
-| Percentages |     13 |       78 |        26 |     23 |       3 |
-| Perimeter   |     11 |       64 |        22 |     14 |       4 |
-| Basic area  |     13 |       77 |        26 |     21 |       8 |
-| Probability |     14 |       85 |        28 |     28 |       1 |
-| **Total**   | **84** |  **481** |   **162** |**118** |  **16** |
+| Unit               |  Topics | Practice | Retrieval | Guards | Figures |
+| ------------------ | ------: | -------: | --------: | -----: | ------: |
+| Fractions          |      17 |       89 |        31 |     15 |       0 |
+| Decimals           |      16 |       88 |        29 |     17 |       0 |
+| Percentages        |      13 |       78 |        26 |     23 |       3 |
+| Perimeter          |      11 |       64 |        22 |     14 |       4 |
+| Basic area         |      13 |       77 |        26 |     21 |       8 |
+| Probability        |      14 |       85 |        28 |     28 |       1 |
+| Number and money   |      10 |       52 |        21 |      9 |       0 |
+| Directed numbers   |       9 |       48 |        19 |      8 |       1 |
+| Algebra            |      10 |       53 |        21 |     10 |       0 |
+| Straight lines     |      10 |       53 |        21 |      9 |       1 |
+| **Total**          | **123** |  **687** |   **244** |**154** |  **18** |
 
-Elliot has all six in that order. The other four learners have empty
-unit lists on purpose — they log in fine and see "Nothing here yet",
-which is a different message from "All done".
+### Who gets what
+
+| Learner  | Level | Units, in their order                                     |
+| -------- | ----- | --------------------------------------------------------- |
+| Elliot   | AU-7  | Fractions, Decimals, Percentages, Perimeter, Area, Probability |
+| Honitalo | SI-6  | Number and money, Perimeter, Basic area, Fractions        |
+| Letisha  | SI-7  | Directed numbers, Fractions, Decimals, Percentages        |
+| Jordesh  | SI-9  | Algebra, Percentages, Probability                         |
+| Yvonne   | SI-10 | Straight lines, Algebra, Percentages                      |
+
+The four Solomon Islands units are written against the year levels in
+the learner records, using the standard five-strand structure — Number,
+Measurement, Shape and Space, Chance and Data, Patterns and Algebra —
+rather than any one school's scheme of work. **Check them against the
+actual teacher's guide before a session**; the mathematics is sound at
+those levels but the sequencing is a judgement call, not a citation.
+
+**Yvonne's order is deliberate and looks backwards.** Straight lines is
+Form 4 and comes first; Algebra is Form 3 and sits behind it. Every
+linear topic names its algebra prerequisites, so the ladder rail sends
+her back to the one topic she is missing rather than making her re-walk
+a whole year she may not need. Same principle as Decimals reaching into
+Fractions.
 
 **The units are wired together, not stacked.** Decimals lists fraction
 topics as prerequisites; Percentages reaches into both; Area reaches
-into Perimeter; Probability reaches into Fractions and Percentages. So
-when something new will not stick, the fundamental underneath it is one
-click away on the ladder rail instead of forgotten. Every prerequisite
-resolves, and nothing depends on a topic later in Elliot's queue.
+into Perimeter; Probability reaches into Fractions and Percentages;
+Algebra reaches into Directed numbers and Number and money; Straight
+lines reaches into Algebra. So when something new will not stick, the
+fundamental underneath it is one click away on the ladder rail instead
+of forgotten.
+
+Every prerequisite resolves, no prerequisite points forward within its
+own unit, and there are no cycles. A prerequisite **may** point into a
+unit the learner has not been assigned — that is the mechanism working,
+not a defect. The link still opens.
 
 Two topics are deliberately built as a matched pair pulling in opposite
 directions: `pe-07-compound` teaches *ignore the internal line* and
@@ -256,6 +310,76 @@ never the goal and there is no finish line to fall short of.
 When a cluster arrives, add the confusing topics **and** the one or two
 topics underneath them, even if nobody asked for those. That is where
 the diagnosis usually lands.
+
+---
+
+## What a topic page shows
+
+In order, top to bottom:
+
+1. **Unit and position** — *Algebra · 4 of 10*, linked back to the unit.
+   This used to print the raw level code (`AU-7`) instead. Nobody
+   reading it needed that; it is a filing detail and it belongs on the
+   map.
+2. **The title and the one idea.**
+3. **Builds on** — the full prerequisite chain, collapsed. On a topic
+   eight deep this is a long list and it is reference material, not part
+   of the lesson, so it opens on request.
+4. **Warm-up** — see below. Collapsed, and absent entirely when there is
+   nothing to ask.
+5. **The lesson** — sections, figures, worked examples, boxed rules.
+6. **Careful, this is not the same as** — the false-rule guards.
+7. **Your turn** — practice, commit-then-reveal.
+8. **Finished this one**, then the previous/next pager.
+
+Finishing a topic returns to the **unit page**, not the dashboard. Two
+levels up is a long way to be thrown for pressing a button that says
+"finished this one", and the unit page already shows what is next
+without needing to be re-read.
+
+### The warm-up
+
+Every topic file carries a `retrieval` array — two or three short
+questions written to be asked again weeks later. **Until this revision
+nothing rendered them.** Two hundred and forty-four authored questions
+were sitting in the data files, unused.
+
+They now appear as a collapsed *Warm-up* block at the top of a topic:
+up to three questions drawn from topics **already finished earlier in
+the same unit**, most recent first, each labelled with where it came
+from. Same commit-then-reveal shape as practice, without the working-out
+box — these are meant to be answered out loud in a few seconds.
+
+The spacing is deliberately crude. The only rule that matters is that a
+warm-up question never comes from the lesson about to be taught, so it
+is recall rather than reading ahead. `Units.warmUp(slug, topicId, n)`
+returns `[]` when there is nothing behind the topic yet, and the view
+then renders nothing at all — no empty box, no "no questions yet".
+
+### Long units fold
+
+A seventeen-topic unit printed in full was the single biggest source of
+*this is a lot* on the site. The unit page now shows everything
+finished, the next topic, and the three after it. The rest collapse
+behind one button that names the count: *Show the other 12*.
+
+Nothing is removed and nothing is hidden from search — one click gets
+the whole list, and the print stylesheet unfolds it regardless, because
+a folded row on paper is just a missing row.
+
+### The map is the learner's own list
+
+`#/map` used to dump every topic in the library grouped by subject and
+sorted by dependency depth. With one subject and a hundred-odd topics
+that is one very long undifferentiated column, and the indentation was
+encoding information nobody was reading.
+
+It is now the learner's own units, in their own order, with a filter box
+on top. Typing filters rows by title and one-line idea, hides unit
+headings that end up empty, and announces the count politely. Plain
+substring matching, no ranking, no fuzzy matching — a learner typing
+`fract` wants the fraction topics, and anything cleverer starts
+guessing.
 
 ---
 
@@ -522,6 +646,7 @@ the bottom of each topic.
   worth adding if it ever moves to phones on mobile data.
 - Grouping a learner's queue into named clusters rather than one flat
   list.
-- Content for the other four learners, added as parents and teachers
-  flag things.
-- Footer columns.
+- A parallel site for the younger children.
+- Video. The intended shape is a small schema addition — a YouTube id
+  and a caption on the topic — with the video as the entry point and the
+  written sections as optional depth, not the other way round.

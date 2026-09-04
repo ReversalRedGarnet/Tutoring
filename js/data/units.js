@@ -147,6 +147,84 @@ window.UNITS = [
       'pb-13-misconceptions',
       'pb-14-review'
     ]
+  },
+
+  /* ---------------------------------------------------------------
+     Solomon Islands units. Written against the year levels in the
+     learner records, using the standard strand structure (Number,
+     Measurement, Shape and Space, Chance and Data, Patterns and
+     Algebra) rather than any one school's scheme of work.
+     --------------------------------------------------------------- */
+
+  {
+    id: 'number-money',
+    title: 'Number and money',
+    blurb: 'Large numbers, the four operations, and working with dollars and change.',
+    topics: [
+      'n6-01-place-value',
+      'n6-02-rounding',
+      'n6-03-estimating',
+      'n6-04-add-subtract',
+      'n6-05-multiplying',
+      'n6-06-dividing',
+      'n6-07-factors-multiples',
+      'n6-08-order-operations',
+      'n6-09-money',
+      'n6-10-review'
+    ]
+  },
+
+  {
+    id: 'directed-numbers',
+    title: 'Directed numbers',
+    blurb: 'Numbers below zero, and the sign rules for all four operations.',
+    topics: [
+      'in-01-what-are',
+      'in-02-number-line',
+      'in-03-comparing',
+      'in-04-adding',
+      'in-05-subtracting',
+      'in-06-two-signs',
+      'in-07-multiply-divide',
+      'in-08-word-problems',
+      'in-09-review'
+    ]
+  },
+
+  {
+    id: 'algebra',
+    title: 'Algebra',
+    blurb: 'Letters for numbers, simplifying, expanding, factorising and solving equations.',
+    topics: [
+      'al-01-letters',
+      'al-02-like-terms',
+      'al-03-substitution',
+      'al-04-expanding',
+      'al-05-factorising',
+      'al-06-one-step',
+      'al-07-two-step',
+      'al-08-brackets-both-sides',
+      'al-09-word-problems',
+      'al-10-review'
+    ]
+  },
+
+  {
+    id: 'straight-lines',
+    title: 'Straight-line graphs',
+    blurb: 'Coordinates, gradient, y = mx + c, and reading a rule off a graph.',
+    topics: [
+      'ln-01-coordinates',
+      'ln-02-table-and-plot',
+      'ln-03-gradient',
+      'ln-04-intercept',
+      'ln-05-y-mx-c',
+      'ln-06-rule-from-graph',
+      'ln-07-two-points',
+      'ln-08-parallel',
+      'ln-09-real-world',
+      'ln-10-review'
+    ]
   }
 
 ];
